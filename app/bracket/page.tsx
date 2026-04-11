@@ -577,15 +577,7 @@ export default function BracketPage() {
           )}
         </AnimatePresence>
 
-        {/* Actions */}
-        <div className="flex justify-center gap-2 sm:gap-3 py-6 flex-wrap px-4 sm:px-6">
-          <motion.button whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} onClick={() => window.print()} className="px-4 sm:px-5 py-2 sm:py-2.5 rounded-full text-xs sm:text-sm font-semibold glass-card transition-all" style={{ color: "var(--text-secondary)" }}>
-            🖨️ In
-          </motion.button>
-          <motion.button whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} onClick={resetAll} className="px-4 sm:px-5 py-2 sm:py-2.5 rounded-full text-xs sm:text-sm font-semibold transition-all hover:text-red-500" style={{ color: "var(--text-muted)", border: "1px solid var(--border-subtle)" }}>
-            🗑️ Reset giải
-          </motion.button>
-        </div>
+        {/* Actions hidden for production */}
       </main>
 
       <ConfirmModal
