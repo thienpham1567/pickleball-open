@@ -85,7 +85,7 @@ export default function SpinPage() {
   const [targetFemaleId, setTargetFemaleId] = useState<string | undefined>();
   const wheelSize = useWheelSize(mode);
 
-  // Countdown lock — unlock at 18:00 today
+  // Countdown lock — unlock at 19:00 today
   const UNLOCK_HOUR = 19; // 7 PM
   const [countdown, setCountdown] = useState("");
   const [isLocked, setIsLocked] = useState(true);
@@ -95,23 +95,14 @@ export default function SpinPage() {
       const now = new Date();
       const unlock = new Date();
       unlock.setHours(UNLOCK_HOUR, 0, 0, 0);
-
-      if (now >= unlock) {
-        setIsLocked(false);
-        setCountdown("");
-        return;
-      }
-
+      if (now >= unlock) { setIsLocked(false); setCountdown(""); return; }
       const diff = unlock.getTime() - now.getTime();
       const hours = Math.floor(diff / (1000 * 60 * 60));
       const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
       const seconds = Math.floor((diff % (1000 * 60)) / 1000);
-      setCountdown(
-        `${hours.toString().padStart(2, "0")}:${minutes.toString().padStart(2, "0")}:${seconds.toString().padStart(2, "0")}`
-      );
+      setCountdown(`${hours.toString().padStart(2, "0")}:${minutes.toString().padStart(2, "0")}:${seconds.toString().padStart(2, "0")}`);
       setIsLocked(true);
     };
-
     checkTime();
     const timer = setInterval(checkTime, 1000);
     return () => clearInterval(timer);
@@ -176,12 +167,15 @@ export default function SpinPage() {
   }, []);
 
   // Save pairs to both Supabase and localStorage
+  const isSavingRef = useRef(false);
   useEffect(() => {
     if (!dataLoaded) return;
-    if (pairs.length > 0) {
-      localStorage.setItem("pickleball-pairs", JSON.stringify(pairs));
-      savePairs(pairs);
-    }
+    isSavingRef.current = true;
+    localStorage.setItem("pickleball-pairs", JSON.stringify(pairs));
+    savePairs(pairs).finally(() => {
+      // Delay clearing the flag so polling doesn't self-trigger
+      setTimeout(() => { isSavingRef.current = false; }, 2000);
+    });
   }, [pairs, dataLoaded]);
 
   // Track local pair count to detect remote changes
@@ -196,7 +190,7 @@ export default function SpinPage() {
 
     // Method 1: Supabase Realtime (requires Realtime replication enabled on table)
     const unsub = subscribeTournamentData((key, data) => {
-      if (key === "pairs") {
+      if (key === "pairs" && !isSavingRef.current) {
         const remotePairs = (data as Pair[]) ?? [];
         const localCount = localPairCountRef.current;
         if (remotePairs.length !== localCount) {
@@ -207,6 +201,7 @@ export default function SpinPage() {
 
     // Method 2: Polling fallback (every 5s) — works even without Realtime enabled
     const pollInterval = setInterval(async () => {
+      if (isSavingRef.current) return; // Skip while we're saving
       try {
         const remotePairs = await fetchPairs();
         const localCount = localPairCountRef.current;
@@ -216,7 +211,7 @@ export default function SpinPage() {
       } catch {
         // Ignore polling errors
       }
-    }, 5000);
+    }, 3000);
 
     return () => {
       unsub();
@@ -231,6 +226,9 @@ export default function SpinPage() {
     setHasRemoteUpdate(false);
     setShowResult(false);
     setSpinning(false);
+    setPendingMale(null);
+    setPendingFemale(null);
+    setSelectedFemale(null);
   }, []);
 
   const pairedMaleIds = pairs.map((p) => p.male.id);
@@ -413,7 +411,9 @@ export default function SpinPage() {
   return (
     <>
       <Navbar />
-      <main className="pt-14 sm:pt-20 pb-8 sm:pb-16 min-h-screen">
+      <main className="pt-14 sm:pt-20 pb-8 sm:pb-16 min-h-screen relative overflow-hidden">
+
+
         {/* Hero */}
         <motion.section
           initial={{ opacity: 0, y: 20 }}
@@ -768,7 +768,7 @@ export default function SpinPage() {
                 </div>
               )}
 
-              {/* Reset button hidden */}
+              {/* Reset button hidden for production */}
             </div>
           </motion.aside>
         </div>
@@ -807,14 +807,26 @@ export default function SpinPage() {
               background: "linear-gradient(135deg, #0f172a 0%, #1e3a5f 50%, #0f172a 100%)",
             }}
           >
+            {/* Paddle background in countdown */}
+            <div
+              className="absolute inset-0 pointer-events-none"
+              style={{
+                backgroundImage: "url('/joola-paddle.png')",
+                backgroundRepeat: "no-repeat",
+                backgroundPosition: "center center",
+                backgroundSize: "500px",
+                opacity: 0.12,
+                mixBlendMode: "screen",
+              }}
+            />
             <div className="text-center px-6">
               <motion.div
                 initial={{ scale: 0 }}
                 animate={{ scale: 1 }}
                 transition={{ type: "spring", damping: 12, delay: 0.2 }}
-                className="text-7xl sm:text-8xl mb-6"
+                className="mb-6"
               >
-                🏓
+                <img src="/joola-paddle.png" alt="JOOLA Paddle" className="w-40 sm:w-52 mx-auto drop-shadow-2xl" style={{ filter: "drop-shadow(0 0 30px rgba(59,130,246,0.3))" }} />
               </motion.div>
 
               <motion.h2
