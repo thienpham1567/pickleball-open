@@ -339,7 +339,7 @@ export default function SpinPage() {
                         <motion.div key={selectedFemale.id} initial={{ scale: 0.8, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.8, opacity: 0 }} className="flex flex-col items-center gap-3">
                           <div className="relative">
                             <div className="absolute -inset-2 rounded-full bg-gradient-to-r from-pink-400 via-rose-400 to-pink-500 opacity-30 blur-md animate-pulse" />
-                            <div className="relative w-24 h-24 sm:w-28 sm:h-28 rounded-full overflow-hidden ring-4 ring-pink-400 ring-offset-4 shadow-xl" style={{ ringOffsetColor: "var(--bg-primary)" }}>
+                            <div className="relative w-24 h-24 sm:w-28 sm:h-28 rounded-full overflow-hidden ring-4 ring-pink-400 ring-offset-4 shadow-xl" style={{ ["--tw-ring-offset-color" as string]: "var(--bg-primary)" } as React.CSSProperties}>
                               <Image src={selectedFemale.image} alt={selectedFemale.displayName} fill className="object-cover" />
                             </div>
                           </div>
