@@ -475,21 +475,12 @@ export default function BracketPage() {
               ) : (
                 /* Groups with matches + standings (after draw) */
                 <>
-                  {/* Scoring rules + re-draw */}
+                  {/* Scoring rules */}
                   <div className="flex justify-center items-center gap-3 mb-6 flex-wrap">
                     <div className="px-4 py-2.5 rounded-xl glass-card inline-flex gap-4 text-[10px] sm:text-xs" style={{ color: "var(--text-muted)" }}>
                       <span>🏓 Chạm <b>11</b> điểm</span>
                       <span>🔄 Đổi sân <b>6</b> điểm</span>
                     </div>
-                    <motion.button
-                      whileHover={{ scale: 1.05 }}
-                      whileTap={{ scale: 0.95 }}
-                      onClick={randomDrawGroups}
-                      className="px-4 py-2 rounded-full text-xs font-semibold glass-card transition-all"
-                      style={{ color: "var(--text-secondary)" }}
-                    >
-                      🔀 Chia lại bảng
-                    </motion.button>
                   </div>
 
                   <div className="grid md:grid-cols-3 gap-6">
@@ -525,15 +516,7 @@ export default function BracketPage() {
                         ✅ Tứ kết đã được bốc thăm — chuyển sang tab Vòng Loại
                       </p>
                     )}
-                    <motion.button
-                      whileHover={{ scale: 1.03 }}
-                      whileTap={{ scale: 0.97 }}
-                      onClick={randomDrawGroups}
-                      className="px-5 py-2 rounded-full text-xs font-semibold glass-card transition-all"
-                      style={{ color: "var(--text-secondary)" }}
-                    >
-                      🔀 Chia lại bảng
-                    </motion.button>
+                    {/* Chia lại bảng hidden for production */}
                   </div>
                 </>
               )}

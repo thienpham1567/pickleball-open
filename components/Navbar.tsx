@@ -6,7 +6,7 @@ import { motion } from "framer-motion";
 import { useTheme } from "@/lib/theme";
 
 const navItems = [
-  { href: "/", label: "Quay Số", icon: "🏓" },
+  // { href: "/", label: "Quay Số", icon: "🏓" }, // hidden for production
   { href: "/bracket", label: "Nhánh Đấu", icon: "🏆" },
 ];
 
