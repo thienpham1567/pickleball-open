@@ -85,6 +85,38 @@ export default function SpinPage() {
   const [targetFemaleId, setTargetFemaleId] = useState<string | undefined>();
   const wheelSize = useWheelSize(mode);
 
+  // Countdown lock — unlock at 18:00 today
+  const UNLOCK_HOUR = 18; // 6 PM
+  const [countdown, setCountdown] = useState("");
+  const [isLocked, setIsLocked] = useState(true);
+
+  useEffect(() => {
+    const checkTime = () => {
+      const now = new Date();
+      const unlock = new Date();
+      unlock.setHours(UNLOCK_HOUR, 0, 0, 0);
+
+      if (now >= unlock) {
+        setIsLocked(false);
+        setCountdown("");
+        return;
+      }
+
+      const diff = unlock.getTime() - now.getTime();
+      const hours = Math.floor(diff / (1000 * 60 * 60));
+      const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+      const seconds = Math.floor((diff % (1000 * 60)) / 1000);
+      setCountdown(
+        `${hours.toString().padStart(2, "0")}:${minutes.toString().padStart(2, "0")}:${seconds.toString().padStart(2, "0")}`
+      );
+      setIsLocked(true);
+    };
+
+    checkTime();
+    const timer = setInterval(checkTime, 1000);
+    return () => clearInterval(timer);
+  }, []);
+
   const totalPairs = Math.min(malePlayers.length, femalePlayers.length);
 
   // Load players and pairs from Supabase (with localStorage fallback)
@@ -718,20 +750,7 @@ export default function SpinPage() {
                 </div>
               )}
 
-              {pairs.length > 0 && (
-                <motion.button
-                  whileHover={{ scale: 1.03 }}
-                  whileTap={{ scale: 0.97 }}
-                  onClick={handleReset}
-                  className="w-full mt-4 px-4 py-2 rounded-full text-xs transition-all"
-                  style={{
-                    color: "var(--reset-text)",
-                    border: "1px solid var(--reset-border)",
-                  }}
-                >
-                  🔄 Reset lại từ đầu
-                </motion.button>
-              )}
+              {/* Reset button hidden */}
             </div>
           </motion.aside>
         </div>
@@ -757,6 +776,96 @@ export default function SpinPage() {
         onConfirm={doReset}
         onCancel={() => setShowResetConfirm(false)}
       />
+
+      {/* Countdown lock overlay — blocks until 18:00 */}
+      <AnimatePresence>
+        {isLocked && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[9998] flex items-center justify-center"
+            style={{
+              background: "linear-gradient(135deg, #0f172a 0%, #1e3a5f 50%, #0f172a 100%)",
+            }}
+          >
+            <div className="text-center px-6">
+              <motion.div
+                initial={{ scale: 0 }}
+                animate={{ scale: 1 }}
+                transition={{ type: "spring", damping: 12, delay: 0.2 }}
+                className="text-7xl sm:text-8xl mb-6"
+              >
+                🏓
+              </motion.div>
+
+              <motion.h2
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.4 }}
+                className="text-2xl sm:text-4xl font-black text-white mb-2 tracking-tight"
+              >
+                PICKLEBALL OPEN
+              </motion.h2>
+
+              <motion.p
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ delay: 0.6 }}
+                className="text-blue-300 text-sm sm:text-base mb-10 font-medium"
+              >
+                Vòng quay bắt cặp sẽ mở lúc 18:00
+              </motion.p>
+
+              <motion.div
+                initial={{ opacity: 0, scale: 0.8 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ delay: 0.8 }}
+                className="inline-flex items-center gap-1 sm:gap-2 px-6 sm:px-10 py-4 sm:py-6 rounded-2xl"
+                style={{
+                  background: "rgba(255,255,255,0.08)",
+                  border: "1px solid rgba(255,255,255,0.15)",
+                  backdropFilter: "blur(10px)",
+                }}
+              >
+                {countdown.split("").map((char, i) => (
+                  <span
+                    key={i}
+                    className={`font-mono font-black ${
+                      char === ":"
+                        ? "text-2xl sm:text-4xl text-blue-400 animate-pulse mx-0.5"
+                        : "text-4xl sm:text-6xl text-white"
+                    }`}
+                    style={
+                      char !== ":"
+                        ? {
+                            background: "rgba(59,130,246,0.15)",
+                            borderRadius: "8px",
+                            padding: "4px 8px",
+                            minWidth: "2.5rem",
+                            display: "inline-block",
+                            textAlign: "center",
+                          }
+                        : {}
+                    }
+                  >
+                    {char}
+                  </span>
+                ))}
+              </motion.div>
+
+              <motion.p
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ delay: 1 }}
+                className="text-white/40 text-xs mt-8"
+              >
+                Hãy chuẩn bị sẵn sàng! ⏳
+              </motion.p>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* Remote data change overlay */}
       <AnimatePresence>
