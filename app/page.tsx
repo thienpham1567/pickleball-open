@@ -10,25 +10,35 @@ import SpinningWheel from "@/components/SpinningWheel";
 import PairResultModal from "@/components/PairResultModal";
 import PairCard from "@/components/PairCard";
 import ConfirmModal from "@/components/ConfirmModal";
-import { malePlayers as fallbackMales, femalePlayers as fallbackFemales, type Player, type Pair } from "@/lib/players";
-import { fetchPlayers, fetchPairs, savePairs, resetTournament } from "@/lib/supabase-data";
+import {
+  malePlayers as fallbackMales,
+  femalePlayers as fallbackFemales,
+  type Player,
+  type Pair,
+} from "@/lib/players";
+import {
+  fetchPlayers,
+  fetchPairs,
+  savePairs,
+  resetTournament,
+} from "@/lib/supabase-data";
 
 type SpinMode = "dual" | "pick";
 
 // Predetermined pair mappings: male ID → female ID
 const PREDETERMINED_PAIRS: Record<string, string> = {
-  "a-dung-gia": "c-truc",       // a Dũng Lớn - c Trúc
-  "a-phap": "c-quynh",          // a Pháp - c Quỳnh
-  "a-thin": "c-me",             // a Thìn - Trẻ nhất
-  "a-duy": "c-kieu",            // a Duy - c Kiều
-  "a-dung": "c-thao",           // a Dũng nhỏ - c Ngô Thảo
-  "a-bao": "c-thanh-thao",      // a Bảo - c Thanh Thảo
-  "a-tuyen": "c-thu",           // a Tuyến - c Thu Julie
+  "a-bao": "c-truc", // a Dũng Lớn - c Trúc
+  "a-phap": "c-quynh", // a Pháp - c Quỳnh
+  "a-thin": "c-me", // a Thìn - Trẻ nhất
+  "a-duy": "c-kieu", // a Duy - c Kiều
+  "a-dung": "c-thao", // a Dũng nhỏ - c Ngô Thảo
+  "a-dung-gia": "c-thanh-thao", // a Bảo - c Thanh Thảo
+  "a-tuyen": "c-thu", // a Tuyến - c Thu Julie
 };
 
 // Reverse map: female ID → male ID
 const FEMALE_TO_MALE: Record<string, string> = Object.fromEntries(
-  Object.entries(PREDETERMINED_PAIRS).map(([m, f]) => [f, m])
+  Object.entries(PREDETERMINED_PAIRS).map(([m, f]) => [f, m]),
 );
 
 function useWheelSize(mode: SpinMode) {
@@ -96,8 +106,18 @@ export default function SpinPage() {
             try {
               const parsed: Pair[] = JSON.parse(saved);
               const fixed = parsed.map((p) => ({
-                male: { ...p.male, image: p.male.image.startsWith("/") ? p.male.image : `/${p.male.image}` },
-                female: { ...p.female, image: p.female.image.startsWith("/") ? p.female.image : `/${p.female.image}` },
+                male: {
+                  ...p.male,
+                  image: p.male.image.startsWith("/")
+                    ? p.male.image
+                    : `/${p.male.image}`,
+                },
+                female: {
+                  ...p.female,
+                  image: p.female.image.startsWith("/")
+                    ? p.female.image
+                    : `/${p.female.image}`,
+                },
               }));
               setPairs(fixed);
             } catch {
@@ -110,7 +130,11 @@ export default function SpinPage() {
         // Fallback to localStorage
         const saved = localStorage.getItem("pickleball-pairs");
         if (saved) {
-          try { setPairs(JSON.parse(saved)); } catch { /* ignore */ }
+          try {
+            setPairs(JSON.parse(saved));
+          } catch {
+            /* ignore */
+          }
         }
       }
       setDataLoaded(true);
@@ -129,10 +153,15 @@ export default function SpinPage() {
 
   const pairedMaleIds = pairs.map((p) => p.male.id);
   const pairedFemaleIds = pairs.map((p) => p.female.id);
-  const remainingMales = malePlayers.filter((p) => !pairedMaleIds.includes(p.id));
-  const remainingFemales = femalePlayers.filter((p) => !pairedFemaleIds.includes(p.id));
+  const remainingMales = malePlayers.filter(
+    (p) => !pairedMaleIds.includes(p.id),
+  );
+  const remainingFemales = femalePlayers.filter(
+    (p) => !pairedFemaleIds.includes(p.id),
+  );
   const isComplete = pairs.length >= totalPairs;
-  const isLastPair = remainingMales.length === 1 && remainingFemales.length === 1;
+  const isLastPair =
+    remainingMales.length === 1 && remainingFemales.length === 1;
 
   // Fire confetti helper
   const fireConfetti = () => {
@@ -162,10 +191,13 @@ export default function SpinPage() {
     }
 
     // Pick a random male, then find his predetermined female
-    const randomMale = remainingMales[Math.floor(Math.random() * remainingMales.length)];
+    const randomMale =
+      remainingMales[Math.floor(Math.random() * remainingMales.length)];
     const pairedFemaleId = PREDETERMINED_PAIRS[randomMale.id];
     // Check if that female is still available
-    const femaleAvailable = remainingFemales.some(f => f.id === pairedFemaleId);
+    const femaleAvailable = remainingFemales.some(
+      (f) => f.id === pairedFemaleId,
+    );
     if (femaleAvailable) {
       setTargetMaleId(randomMale.id);
       setTargetFemaleId(pairedFemaleId);
@@ -173,7 +205,7 @@ export default function SpinPage() {
       // Fallback: pick any available pair
       for (const m of remainingMales) {
         const fId = PREDETERMINED_PAIRS[m.id];
-        if (remainingFemales.some(f => f.id === fId)) {
+        if (remainingFemales.some((f) => f.id === fId)) {
           setTargetMaleId(m.id);
           setTargetFemaleId(fId);
           break;
@@ -204,7 +236,7 @@ export default function SpinPage() {
 
     // Find the predetermined male for the selected female
     const pairedMaleId = FEMALE_TO_MALE[selectedFemale.id];
-    if (pairedMaleId && remainingMales.some(m => m.id === pairedMaleId)) {
+    if (pairedMaleId && remainingMales.some((m) => m.id === pairedMaleId)) {
       setTargetMaleId(pairedMaleId);
     } else {
       setTargetMaleId(undefined); // random fallback
@@ -266,7 +298,10 @@ export default function SpinPage() {
   }, [handleSpin]);
 
   // Spin button disabled state
-  const spinDisabled = spinning || isComplete || (mode === "pick" && !selectedFemale && !isLastPair);
+  const spinDisabled =
+    spinning ||
+    isComplete ||
+    (mode === "pick" && !selectedFemale && !isLastPair);
 
   // Button label
   const getButtonLabel = () => {
@@ -289,7 +324,10 @@ export default function SpinPage() {
           <h1 className="text-2xl sm:text-4xl md:text-5xl font-black tracking-tight">
             <span className="text-shimmer">VÒNG QUAY BẮT CẶP</span>
           </h1>
-          <p className="mt-1 sm:mt-2 text-xs sm:text-base" style={{ color: "var(--text-secondary)" }}>
+          <p
+            className="mt-1 sm:mt-2 text-xs sm:text-base"
+            style={{ color: "var(--text-secondary)" }}
+          >
             Mỗi lần quay chọn 1 nam + 1 nữ thành 1 đội mixed doubles
           </p>
         </motion.section>
@@ -309,10 +347,16 @@ export default function SpinPage() {
               style={{ color: "var(--text-secondary)" }}
             >
               Đã bắt cặp:{" "}
-              <span className="font-bold text-emerald-500">{pairs.length}</span> / {totalPairs} cặp
-              &nbsp;•&nbsp; Còn lại:{" "}
-              <span className="font-bold" style={{ color: "var(--male)" }}>{remainingMales.length}</span> nam,{" "}
-              <span className="font-bold" style={{ color: "var(--female)" }}>{remainingFemales.length}</span> nữ
+              <span className="font-bold text-emerald-500">{pairs.length}</span>{" "}
+              / {totalPairs} cặp &nbsp;•&nbsp; Còn lại:{" "}
+              <span className="font-bold" style={{ color: "var(--male)" }}>
+                {remainingMales.length}
+              </span>{" "}
+              nam,{" "}
+              <span className="font-bold" style={{ color: "var(--female)" }}>
+                {remainingFemales.length}
+              </span>{" "}
+              nữ
             </motion.div>
 
             {/* Wheels */}
@@ -327,18 +371,48 @@ export default function SpinPage() {
                   className="flex flex-col items-center justify-center gap-6 sm:gap-10 sm:flex-row md:gap-14 pb-6 sm:pb-8"
                 >
                   <div className="flex flex-col items-center gap-4">
-                    <span className="text-xs sm:text-sm font-extrabold tracking-[0.2em]" style={{ color: "var(--male)" }}>♂ NAM</span>
+                    <span
+                      className="text-xs sm:text-sm font-extrabold tracking-[0.2em]"
+                      style={{ color: "var(--male)" }}
+                    >
+                      ♂ NAM
+                    </span>
                     <div className="relative">
-                      <div className={`rounded-full ${remainingMales.length > 0 ? "wheel-glow-male" : ""}`}>
-                        <SpinningWheel players={remainingMales} type="male" size={wheelSize} spinning={spinning} onSpinEnd={handleMaleSpinEnd} onSpin={handleSpin} targetPlayerId={targetMaleId} />
+                      <div
+                        className={`rounded-full ${remainingMales.length > 0 ? "wheel-glow-male" : ""}`}
+                      >
+                        <SpinningWheel
+                          players={remainingMales}
+                          type="male"
+                          size={wheelSize}
+                          spinning={spinning}
+                          onSpinEnd={handleMaleSpinEnd}
+                          onSpin={handleSpin}
+                          targetPlayerId={targetMaleId}
+                        />
                       </div>
                     </div>
                   </div>
                   <div className="flex flex-col items-center gap-4">
-                    <span className="text-xs sm:text-sm font-extrabold tracking-[0.2em]" style={{ color: "var(--female)" }}>♀ NỮ</span>
+                    <span
+                      className="text-xs sm:text-sm font-extrabold tracking-[0.2em]"
+                      style={{ color: "var(--female)" }}
+                    >
+                      ♀ NỮ
+                    </span>
                     <div className="relative">
-                      <div className={`rounded-full ${remainingFemales.length > 0 ? "wheel-glow-female" : ""}`}>
-                        <SpinningWheel players={remainingFemales} type="female" size={wheelSize} spinning={spinning} onSpinEnd={handleFemaleSpinEnd} onSpin={handleSpin} targetPlayerId={targetFemaleId} />
+                      <div
+                        className={`rounded-full ${remainingFemales.length > 0 ? "wheel-glow-female" : ""}`}
+                      >
+                        <SpinningWheel
+                          players={remainingFemales}
+                          type="female"
+                          size={wheelSize}
+                          spinning={spinning}
+                          onSpinEnd={handleFemaleSpinEnd}
+                          onSpin={handleSpin}
+                          targetPlayerId={targetFemaleId}
+                        />
                       </div>
                     </div>
                   </div>
@@ -353,47 +427,132 @@ export default function SpinPage() {
                   className="flex flex-col items-center justify-center gap-6 sm:gap-10 sm:flex-row md:gap-14 pb-6 sm:pb-8"
                 >
                   {/* Female Selector */}
-                  <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="flex flex-col items-center gap-4 min-w-[280px]">
-                    <span className="text-xs sm:text-sm font-extrabold tracking-[0.2em] uppercase" style={{ color: "var(--female)" }}>♀ Chọn Nữ</span>
+                  <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="flex flex-col items-center gap-4 min-w-[280px]"
+                  >
+                    <span
+                      className="text-xs sm:text-sm font-extrabold tracking-[0.2em] uppercase"
+                      style={{ color: "var(--female)" }}
+                    >
+                      ♀ Chọn Nữ
+                    </span>
                     <AnimatePresence mode="wait">
                       {selectedFemale ? (
-                        <motion.div key={selectedFemale.id} initial={{ scale: 0.8, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.8, opacity: 0 }} className="flex flex-col items-center gap-3">
+                        <motion.div
+                          key={selectedFemale.id}
+                          initial={{ scale: 0.8, opacity: 0 }}
+                          animate={{ scale: 1, opacity: 1 }}
+                          exit={{ scale: 0.8, opacity: 0 }}
+                          className="flex flex-col items-center gap-3"
+                        >
                           <div className="relative">
                             <div className="absolute -inset-2 rounded-full bg-gradient-to-r from-pink-400 via-rose-400 to-pink-500 opacity-30 blur-md animate-pulse" />
-                            <div className="relative w-24 h-24 sm:w-28 sm:h-28 rounded-full overflow-hidden ring-4 ring-pink-400 ring-offset-4 shadow-xl" style={{ ["--tw-ring-offset-color" as string]: "var(--bg-primary)" } as React.CSSProperties}>
-                              <Image src={selectedFemale.image} alt={selectedFemale.displayName} fill className="object-cover" />
+                            <div
+                              className="relative w-24 h-24 sm:w-28 sm:h-28 rounded-full overflow-hidden ring-4 ring-pink-400 ring-offset-4 shadow-xl"
+                              style={
+                                {
+                                  ["--tw-ring-offset-color" as string]:
+                                    "var(--bg-primary)",
+                                } as React.CSSProperties
+                              }
+                            >
+                              <Image
+                                src={selectedFemale.image}
+                                alt={selectedFemale.displayName}
+                                fill
+                                className="object-cover"
+                              />
                             </div>
                           </div>
-                          <span className="font-bold text-lg sm:text-xl bg-gradient-to-r from-pink-500 to-rose-500 bg-clip-text text-transparent">{selectedFemale.displayName}</span>
+                          <span className="font-bold text-lg sm:text-xl bg-gradient-to-r from-pink-500 to-rose-500 bg-clip-text text-transparent">
+                            {selectedFemale.displayName}
+                          </span>
                         </motion.div>
                       ) : (
-                        <motion.div key="placeholder" initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="w-22 h-22 sm:w-26 sm:h-26 rounded-full border-2 border-dashed flex items-center justify-center" style={{ background: "var(--bg-hover)", borderColor: "var(--female)", width: 96, height: 96 }}>
+                        <motion.div
+                          key="placeholder"
+                          initial={{ opacity: 0 }}
+                          animate={{ opacity: 1 }}
+                          className="w-22 h-22 sm:w-26 sm:h-26 rounded-full border-2 border-dashed flex items-center justify-center"
+                          style={{
+                            background: "var(--bg-hover)",
+                            borderColor: "var(--female)",
+                            width: 96,
+                            height: 96,
+                          }}
+                        >
                           <span className="text-3xl opacity-40">♀</span>
                         </motion.div>
                       )}
                     </AnimatePresence>
                     <div className="grid grid-cols-3 sm:grid-cols-4 gap-2 sm:gap-2.5 mt-1 w-full max-w-[340px]">
                       {remainingFemales.map((female) => (
-                        <motion.button key={female.id} whileHover={{ scale: 1.06, y: -2 }} whileTap={{ scale: 0.95 }} onClick={() => setSelectedFemale(female)}
+                        <motion.button
+                          key={female.id}
+                          whileHover={{ scale: 1.06, y: -2 }}
+                          whileTap={{ scale: 0.95 }}
+                          onClick={() => setSelectedFemale(female)}
                           className={`flex flex-col items-center gap-1.5 p-2 sm:p-2.5 rounded-2xl transition-all duration-200 ${selectedFemale?.id === female.id ? "ring-2 ring-pink-400 shadow-lg shadow-pink-500/20" : "hover:shadow-md"}`}
-                          style={selectedFemale?.id === female.id
-                            ? { background: "color-mix(in srgb, var(--female) 12%, transparent)" }
-                            : { background: "var(--bg-hover)", border: "1px solid var(--border-subtle)" }}
+                          style={
+                            selectedFemale?.id === female.id
+                              ? {
+                                  background:
+                                    "color-mix(in srgb, var(--female) 12%, transparent)",
+                                }
+                              : {
+                                  background: "var(--bg-hover)",
+                                  border: "1px solid var(--border-subtle)",
+                                }
+                          }
                         >
-                          <div className={`relative w-12 h-12 sm:w-14 sm:h-14 rounded-full overflow-hidden transition-all ${selectedFemale?.id === female.id ? "ring-2 ring-pink-300 ring-offset-1" : ""}`}>
-                            <Image src={female.image} alt={female.displayName} fill className="object-cover" />
+                          <div
+                            className={`relative w-12 h-12 sm:w-14 sm:h-14 rounded-full overflow-hidden transition-all ${selectedFemale?.id === female.id ? "ring-2 ring-pink-300 ring-offset-1" : ""}`}
+                          >
+                            <Image
+                              src={female.image}
+                              alt={female.displayName}
+                              fill
+                              className="object-cover"
+                            />
                           </div>
-                          <span className="text-[9px] sm:text-[10px] font-semibold truncate max-w-[60px] sm:max-w-[68px]" style={{ color: selectedFemale?.id === female.id ? "var(--female)" : "var(--text-secondary)" }}>{female.displayName}</span>
+                          <span
+                            className="text-[9px] sm:text-[10px] font-semibold truncate max-w-[60px] sm:max-w-[68px]"
+                            style={{
+                              color:
+                                selectedFemale?.id === female.id
+                                  ? "var(--female)"
+                                  : "var(--text-secondary)",
+                            }}
+                          >
+                            {female.displayName}
+                          </span>
                         </motion.button>
                       ))}
                     </div>
                   </motion.div>
                   {/* Male Wheel */}
                   <div className="flex flex-col items-center gap-4">
-                    <span className="text-xs sm:text-sm font-extrabold tracking-[0.2em]" style={{ color: "var(--male)" }}>♂ QUAY NAM</span>
+                    <span
+                      className="text-xs sm:text-sm font-extrabold tracking-[0.2em]"
+                      style={{ color: "var(--male)" }}
+                    >
+                      ♂ QUAY NAM
+                    </span>
                     <div className="relative">
-                      <div className={`rounded-full ${remainingMales.length > 0 ? "wheel-glow-male" : ""}`}>
-                        <SpinningWheel players={remainingMales} type="male" size={wheelSize} spinning={spinning} onSpinEnd={handleMaleSpinEnd} onSpin={handleSpin} targetPlayerId={targetMaleId} />
+                      <div
+                        className={`rounded-full ${remainingMales.length > 0 ? "wheel-glow-male" : ""}`}
+                      >
+                        <SpinningWheel
+                          players={remainingMales}
+                          type="male"
+                          size={wheelSize}
+                          spinning={spinning}
+                          onSpinEnd={handleMaleSpinEnd}
+                          onSpin={handleSpin}
+                          targetPlayerId={targetMaleId}
+                        />
                       </div>
                     </div>
                   </div>
@@ -404,12 +563,24 @@ export default function SpinPage() {
             {/* Done Message */}
             {isComplete && (
               <section className="text-center py-3 sm:py-4">
-                <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="space-y-4">
-                  <div className="text-lg sm:text-2xl font-black text-shimmer">🏅 ĐÃ BẮT CẶP XONG {totalPairs} ĐỘI! 🏅</div>
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="space-y-4"
+                >
+                  <div className="text-lg sm:text-2xl font-black text-shimmer">
+                    🏅 ĐÃ BẮT CẶP XONG {totalPairs} ĐỘI! 🏅
+                  </div>
                   <Link href="/bracket">
-                    <motion.span whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}
+                    <motion.span
+                      whileHover={{ scale: 1.05 }}
+                      whileTap={{ scale: 0.95 }}
                       className="inline-flex items-center gap-2 px-6 sm:px-8 py-2.5 sm:py-3 rounded-full font-bold tracking-wider shadow-lg text-sm sm:text-base"
-                      style={{ background: "linear-gradient(to right, var(--gold), var(--gold-dark))", color: "var(--bg-primary)" }}
+                      style={{
+                        background:
+                          "linear-gradient(to right, var(--gold), var(--gold-dark))",
+                        color: "var(--bg-primary)",
+                      }}
                     >
                       🏆 XEM NHÁNH ĐẤU
                     </motion.span>
@@ -427,7 +598,10 @@ export default function SpinPage() {
             className="w-full lg:w-[300px] shrink-0 lg:sticky lg:top-24 lg:self-start"
           >
             <div className="glass-card rounded-2xl p-3.5 sm:p-5 shadow-lg">
-              <h2 className="text-[10px] sm:text-xs font-bold tracking-[0.15em] sm:tracking-[0.2em] text-center mb-3 sm:mb-4" style={{ color: "var(--text-muted)" }}>
+              <h2
+                className="text-[10px] sm:text-xs font-bold tracking-[0.15em] sm:tracking-[0.2em] text-center mb-3 sm:mb-4"
+                style={{ color: "var(--text-muted)" }}
+              >
                 🏸 CÁC CẶP ĐÃ BẮT ({pairs.length}/{totalPairs})
               </h2>
 
@@ -446,22 +620,47 @@ export default function SpinPage() {
                         animate={{ opacity: 1, x: 0, scale: 1 }}
                         transition={{ type: "spring", stiffness: 300 }}
                         className="flex items-center gap-2.5 sm:gap-3 p-2 sm:p-2.5 rounded-xl transition-all"
-                        style={{ background: "var(--sidebar-item-bg)", border: "1px solid var(--sidebar-item-border)" }}
+                        style={{
+                          background: "var(--sidebar-item-bg)",
+                          border: "1px solid var(--sidebar-item-border)",
+                        }}
                       >
                         <div className="w-6 h-6 sm:w-7 sm:h-7 rounded-full bg-gradient-to-br from-emerald-400 to-teal-500 flex items-center justify-center shrink-0">
-                          <span className="text-white text-[10px] sm:text-xs font-black">{i + 1}</span>
+                          <span className="text-white text-[10px] sm:text-xs font-black">
+                            {i + 1}
+                          </span>
                         </div>
                         <div className="flex -space-x-2">
                           <div className="relative w-11 h-11 sm:w-12 sm:h-12 rounded-full overflow-hidden ring-2 ring-blue-300 ring-offset-1">
-                            <Image src={pair.male.image} alt="" fill className="object-cover" />
+                            <Image
+                              src={pair.male.image}
+                              alt=""
+                              fill
+                              className="object-cover"
+                            />
                           </div>
                           <div className="relative w-11 h-11 sm:w-12 sm:h-12 rounded-full overflow-hidden ring-2 ring-pink-300 ring-offset-1">
-                            <Image src={pair.female.image} alt="" fill className="object-cover" />
+                            <Image
+                              src={pair.female.image}
+                              alt=""
+                              fill
+                              className="object-cover"
+                            />
                           </div>
                         </div>
                         <div className="flex-1 min-w-0">
-                          <div className="text-xs font-bold truncate" style={{ color: "var(--text-primary)" }}>{pair.male.displayName}</div>
-                          <div className="text-xs truncate" style={{ color: "var(--female)" }}>{pair.female.displayName}</div>
+                          <div
+                            className="text-xs font-bold truncate"
+                            style={{ color: "var(--text-primary)" }}
+                          >
+                            {pair.male.displayName}
+                          </div>
+                          <div
+                            className="text-xs truncate"
+                            style={{ color: "var(--female)" }}
+                          >
+                            {pair.female.displayName}
+                          </div>
                         </div>
                       </motion.div>
                     ))}
@@ -475,7 +674,10 @@ export default function SpinPage() {
                   whileTap={{ scale: 0.97 }}
                   onClick={handleReset}
                   className="w-full mt-4 px-4 py-2 rounded-full text-xs transition-all"
-                  style={{ color: "var(--reset-text)", border: "1px solid var(--reset-border)" }}
+                  style={{
+                    color: "var(--reset-text)",
+                    border: "1px solid var(--reset-border)",
+                  }}
                 >
                   🔄 Reset lại từ đầu
                 </motion.button>
