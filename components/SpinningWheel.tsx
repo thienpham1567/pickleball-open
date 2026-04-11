@@ -40,6 +40,10 @@ export default function SpinningWheel({
   const imageCache = useRef<Map<string, HTMLImageElement>>(new Map());
   const hasSpun = useRef(false);
 
+  // Offscreen canvas for caching the wheel (drawn once, rotated during animation)
+  const offscreenRef = useRef<HTMLCanvasElement | null>(null);
+  const wheelDirty = useRef(true);
+
   const [themeKey, setThemeKey] = useState(0);
 
   // Watch for theme changes to re-read CSS variables
@@ -52,200 +56,216 @@ export default function SpinningWheel({
   const colors = getWheelColors(type);
   const textColor = getTextColor(type);
 
-  const draw = useCallback(
+  // Mark wheel as dirty when players/theme/images change
+  useEffect(() => { wheelDirty.current = true; }, [players, type, colors, textColor, themeKey]);
+
+  // Build the offscreen wheel cache (expensive, done once)
+  const buildWheelCache = useCallback(() => {
+    const dpr = Math.min(window.devicePixelRatio || 1, 2); // Cap at 2x for mobile perf
+    if (!offscreenRef.current) {
+      offscreenRef.current = document.createElement("canvas");
+    }
+    const off = offscreenRef.current;
+    off.width = size * dpr;
+    off.height = size * dpr;
+    const ctx = off.getContext("2d");
+    if (!ctx) return;
+
+    ctx.clearRect(0, 0, off.width, off.height);
+    ctx.save();
+    ctx.scale(dpr, dpr);
+
+    const center = size / 2;
+    const radius = size / 2 - 14;
+
+    if (players.length === 0) {
+      ctx.beginPath();
+      ctx.arc(center, center, radius, 0, 2 * Math.PI);
+      ctx.fillStyle = "#f1f5f9";
+      ctx.fill();
+      ctx.strokeStyle = "#e2e8f0";
+      ctx.lineWidth = 3;
+      ctx.stroke();
+      ctx.fillStyle = "#10b981";
+      ctx.font = "bold 44px system-ui";
+      ctx.textAlign = "center";
+      ctx.textBaseline = "middle";
+      ctx.fillText("✓", center, center - 10);
+      ctx.fillStyle = "#64748b";
+      ctx.font = "600 14px system-ui";
+      ctx.fillText("Hoàn tất", center, center + 25);
+      ctx.restore();
+      wheelDirty.current = false;
+      return;
+    }
+
+    const segmentAngle = (2 * Math.PI) / players.length;
+
+    // Outer glow ring
+    ctx.save();
+    ctx.beginPath();
+    ctx.arc(center, center, radius + 6, 0, 2 * Math.PI);
+    ctx.strokeStyle = type === "male" ? "rgba(59, 130, 246, 0.12)" : "rgba(236, 72, 153, 0.12)";
+    ctx.lineWidth = 8;
+    ctx.stroke();
+    ctx.restore();
+
+    // Draw segments (NO rotation — rotation applied when compositing)
+    players.forEach((player, i) => {
+      const startAngle = i * segmentAngle - Math.PI / 2;
+      const endAngle = startAngle + segmentAngle;
+      const midAngle = startAngle + segmentAngle / 2;
+      const color = colors[i % colors.length];
+
+      // Segment fill with gradient
+      ctx.beginPath();
+      ctx.moveTo(center, center);
+      ctx.arc(center, center, radius, startAngle, endAngle);
+      ctx.closePath();
+
+      const grad = ctx.createRadialGradient(center, center, radius * 0.15, center, center, radius);
+      grad.addColorStop(0, color + "40");
+      grad.addColorStop(0.5, color + "80");
+      grad.addColorStop(1, color);
+      ctx.fillStyle = grad;
+      ctx.fill();
+
+      // Segment border
+      ctx.beginPath();
+      ctx.moveTo(center, center);
+      ctx.arc(center, center, radius, startAngle, endAngle);
+      ctx.closePath();
+      ctx.strokeStyle = "rgba(255,255,255,0.15)";
+      ctx.lineWidth = 1.5;
+      ctx.stroke();
+
+      // Player photo
+      const img = imageCache.current.get(player.id);
+      if (img) {
+        const photoRadius = Math.min(radius * 0.18, 36);
+        const photoDist = radius * 0.58;
+        const px = Math.cos(midAngle) * photoDist;
+        const py = Math.sin(midAngle) * photoDist;
+
+        ctx.save();
+        ctx.beginPath();
+        ctx.arc(center + px, center + py, photoRadius, 0, 2 * Math.PI);
+        ctx.closePath();
+        ctx.clip();
+
+        const imgAspect = img.naturalWidth / img.naturalHeight;
+        let sw = photoRadius * 2, sh = photoRadius * 2;
+        if (imgAspect > 1) sw = sh * imgAspect;
+        else sh = sw / imgAspect;
+
+        ctx.drawImage(img, center + px - sw / 2, center + py - sh / 2, sw, sh);
+        ctx.restore();
+
+        // Photo border
+        ctx.beginPath();
+        ctx.arc(center + px, center + py, photoRadius, 0, 2 * Math.PI);
+        ctx.strokeStyle = "rgba(255,255,255,0.85)";
+        ctx.lineWidth = 3.5;
+        ctx.stroke();
+      }
+
+      // Player name
+      const textDist = radius * 0.85;
+      const tx = Math.cos(midAngle) * textDist;
+      const ty = Math.sin(midAngle) * textDist;
+
+      ctx.save();
+      ctx.translate(center + tx, center + ty);
+      let textAngle = midAngle;
+      if (textAngle > Math.PI / 2 && textAngle < (3 * Math.PI) / 2) textAngle += Math.PI;
+      if (textAngle < -Math.PI / 2 && textAngle > (-3 * Math.PI) / 2) textAngle += Math.PI;
+      ctx.rotate(textAngle);
+      ctx.font = "bold 11px system-ui";
+      ctx.textAlign = "center";
+      ctx.textBaseline = "middle";
+      ctx.strokeStyle = "rgba(0,0,0,0.3)";
+      ctx.lineWidth = 2.5;
+      ctx.lineJoin = "round";
+      ctx.strokeText(player.displayName, 0, 0);
+      ctx.fillStyle = textColor;
+      ctx.shadowColor = "rgba(0,0,0,0.2)";
+      ctx.shadowBlur = 3;
+      ctx.fillText(player.displayName, 0, 0);
+      ctx.restore();
+    });
+
+    // Premium outer ring
+    ctx.beginPath();
+    ctx.arc(center, center, radius, 0, 2 * Math.PI);
+    const ringGrad = ctx.createLinearGradient(0, 0, size, size);
+    if (type === "male") {
+      ringGrad.addColorStop(0, "rgba(59, 130, 246, 0.4)");
+      ringGrad.addColorStop(0.5, "rgba(99, 160, 255, 0.5)");
+      ringGrad.addColorStop(1, "rgba(59, 130, 246, 0.4)");
+    } else {
+      ringGrad.addColorStop(0, "rgba(236, 72, 153, 0.4)");
+      ringGrad.addColorStop(0.5, "rgba(255, 120, 180, 0.5)");
+      ringGrad.addColorStop(1, "rgba(236, 72, 153, 0.4)");
+    }
+    ctx.strokeStyle = ringGrad;
+    ctx.lineWidth = 5;
+    ctx.stroke();
+
+    // Inner highlight ring
+    ctx.beginPath();
+    ctx.arc(center, center, radius - 3, 0, 2 * Math.PI);
+    ctx.strokeStyle = "rgba(255,255,255,0.15)";
+    ctx.lineWidth = 1;
+    ctx.stroke();
+
+    ctx.restore();
+    wheelDirty.current = false;
+  }, [players, type, size, colors, textColor, themeKey]);
+
+  // Fast render: rotate cached wheel + draw static center hub
+  const render = useCallback(
     (rotation: number) => {
       const canvas = canvasRef.current;
       if (!canvas) return;
       const ctx = canvas.getContext("2d");
       if (!ctx) return;
 
-      const dpr = window.devicePixelRatio || 1;
-      const center = size / 2;
-      const radius = size / 2 - 14;
+      if (wheelDirty.current || !offscreenRef.current) {
+        buildWheelCache();
+      }
 
-      ctx.clearRect(0, 0, size * dpr, size * dpr);
+      const dpr = Math.min(window.devicePixelRatio || 1, 2);
+      const center = size / 2;
+
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
       ctx.save();
       ctx.scale(dpr, dpr);
 
       if (players.length === 0) {
-        // Empty state
-        ctx.beginPath();
-        ctx.arc(center, center, radius, 0, 2 * Math.PI);
-        ctx.fillStyle = "#f1f5f9";
-        ctx.fill();
-        ctx.strokeStyle = "#e2e8f0";
-        ctx.lineWidth = 3;
-        ctx.stroke();
-
-        ctx.fillStyle = "#10b981";
-        ctx.font = "bold 44px system-ui";
-        ctx.textAlign = "center";
-        ctx.textBaseline = "middle";
-        ctx.fillText("✓", center, center - 10);
-
-        ctx.fillStyle = "#64748b";
-        ctx.font = "600 14px system-ui";
-        ctx.fillText("Hoàn tất", center, center + 25);
-
+        if (offscreenRef.current) {
+          ctx.drawImage(offscreenRef.current, 0, 0, size, size);
+        }
         ctx.restore();
         return;
       }
 
-      const segmentAngle = (2 * Math.PI) / players.length;
-
-      // Outer glow ring
-      ctx.save();
-      ctx.beginPath();
-      ctx.arc(center, center, radius + 6, 0, 2 * Math.PI);
-      ctx.strokeStyle = type === "male"
-        ? "rgba(59, 130, 246, 0.12)"
-        : "rgba(236, 72, 153, 0.12)";
-      ctx.lineWidth = 8;
-      ctx.stroke();
-      ctx.restore();
-
+      // Draw rotated cached wheel (single drawImage — very fast!)
       ctx.save();
       ctx.translate(center, center);
       ctx.rotate(rotation);
-
-      players.forEach((player, i) => {
-        const startAngle = i * segmentAngle - Math.PI / 2;
-        const endAngle = startAngle + segmentAngle;
-        const midAngle = startAngle + segmentAngle / 2;
-
-        // Draw segment
-        ctx.beginPath();
-        ctx.moveTo(0, 0);
-        ctx.arc(0, 0, radius, startAngle, endAngle);
-        ctx.closePath();
-
-        // Premium gradient fill
-        const baseColor = colors[i % colors.length];
-        const grad = ctx.createRadialGradient(0, 0, radius * 0.2, 0, 0, radius);
-        grad.addColorStop(0, baseColor + "aa");
-        grad.addColorStop(0.5, baseColor + "dd");
-        grad.addColorStop(1, baseColor);
-        ctx.fillStyle = grad;
-        ctx.fill();
-
-        // Segment divider
-        ctx.strokeStyle = "rgba(255, 255, 255, 0.5)";
-        ctx.lineWidth = 1.5;
-        ctx.stroke();
-
-        // Player photo — balanced for 7 segments
-        const img = imageCache.current.get(player.id);
-        if (img) {
-          const photoRadius = Math.min(radius * 0.18, 36);
-          const photoDist = radius * 0.58;
-          const px = Math.cos(midAngle) * photoDist;
-          const py = Math.sin(midAngle) * photoDist;
-
-          ctx.save();
-
-          // Photo glow
-          ctx.shadowColor = "rgba(0,0,0,0.2)";
-          ctx.shadowBlur = 10;
-          ctx.shadowOffsetY = 2;
-
-          // Clip and draw
-          ctx.beginPath();
-          ctx.arc(px, py, photoRadius, 0, 2 * Math.PI);
-          ctx.closePath();
-          ctx.clip();
-
-          // Draw image covering the circle properly
-          const imgAspect = img.naturalWidth / img.naturalHeight;
-          let drawW = photoRadius * 2;
-          let drawH = photoRadius * 2;
-          let drawX = px - photoRadius;
-          let drawY = py - photoRadius;
-          if (imgAspect > 1) {
-            drawW = drawH * imgAspect;
-            drawX = px - drawW / 2;
-          } else {
-            drawH = drawW / imgAspect;
-            drawY = py - drawH / 2;
-          }
-          ctx.drawImage(img, drawX, drawY, drawW, drawH);
-          ctx.restore();
-
-          // Photo ring border
-          ctx.beginPath();
-          ctx.arc(px, py, photoRadius, 0, 2 * Math.PI);
-          ctx.strokeStyle = "rgba(255, 255, 255, 0.95)";
-          ctx.lineWidth = 3.5;
-          ctx.stroke();
-        }
-
-        // Name label — positioned near rim
-        const nameDist = radius * 0.88;
-        const nx = Math.cos(midAngle) * nameDist;
-        const ny = Math.sin(midAngle) * nameDist;
-
-        ctx.save();
-        ctx.translate(nx, ny);
-        ctx.rotate(midAngle + Math.PI / 2);
-        if (midAngle > 0 && midAngle < Math.PI) {
-          ctx.rotate(Math.PI);
-        }
-
-        // Text with dark outline for readability
-        const fontSize = Math.min(13, 60 / players.length + 7);
-        ctx.font = `bold ${fontSize}px system-ui`;
-        ctx.textAlign = "center";
-        ctx.textBaseline = "middle";
-
-        // Outline
-        ctx.strokeStyle = "rgba(0,0,0,0.3)";
-        ctx.lineWidth = 2.5;
-        ctx.lineJoin = "round";
-        ctx.strokeText(player.displayName, 0, 0);
-
-        // Fill
-        ctx.fillStyle = textColor;
-        ctx.shadowColor = "rgba(0,0,0,0.2)";
-        ctx.shadowBlur = 3;
-        ctx.fillText(player.displayName, 0, 0);
-        ctx.restore();
-      });
-
+      ctx.translate(-center, -center);
+      if (offscreenRef.current) {
+        ctx.drawImage(offscreenRef.current, 0, 0, size, size);
+      }
       ctx.restore();
 
-      // Premium outer ring
-      ctx.beginPath();
-      ctx.arc(center, center, radius, 0, 2 * Math.PI);
-      const ringGrad = ctx.createLinearGradient(0, 0, size, size);
-      if (type === "male") {
-        ringGrad.addColorStop(0, "rgba(59, 130, 246, 0.4)");
-        ringGrad.addColorStop(0.5, "rgba(99, 160, 255, 0.5)");
-        ringGrad.addColorStop(1, "rgba(59, 130, 246, 0.4)");
-      } else {
-        ringGrad.addColorStop(0, "rgba(236, 72, 153, 0.4)");
-        ringGrad.addColorStop(0.5, "rgba(255, 120, 180, 0.5)");
-        ringGrad.addColorStop(1, "rgba(236, 72, 153, 0.4)");
-      }
-      ctx.strokeStyle = ringGrad;
-      ctx.lineWidth = 5;
-      ctx.stroke();
-
-      // Inner highlight ring
-      ctx.beginPath();
-      ctx.arc(center, center, radius - 3, 0, 2 * Math.PI);
-      ctx.strokeStyle = "rgba(255,255,255,0.15)";
-      ctx.lineWidth = 1;
-      ctx.stroke();
-
-      // Center hub — SPIN button
+      // Center hub (not rotated, drawn on top)
       const hubRadius = 32;
       ctx.save();
-
-      // Hub shadow
       ctx.shadowColor = "rgba(0,0,0,0.15)";
       ctx.shadowBlur = 12;
       ctx.shadowOffsetY = 3;
 
-      // Hub background gradient
       ctx.beginPath();
       ctx.arc(center, center, hubRadius, 0, 2 * Math.PI);
       const hubGrad = ctx.createRadialGradient(center - 6, center - 6, 0, center, center, hubRadius);
@@ -260,21 +280,13 @@ export default function SpinningWheel({
       }
       ctx.fillStyle = hubGrad;
       ctx.fill();
-
-      // Hub border ring
       ctx.strokeStyle = "rgba(255,255,255,0.5)";
       ctx.lineWidth = 2.5;
       ctx.stroke();
-
       ctx.shadowColor = "transparent";
 
-      // Play icon (triangle) + text
+      // Play icon triangle
       ctx.fillStyle = "#ffffff";
-      ctx.font = "bold 10px system-ui";
-      ctx.textAlign = "center";
-      ctx.textBaseline = "middle";
-
-      // Draw play triangle
       const triSize = 8;
       ctx.beginPath();
       ctx.moveTo(center - triSize * 0.6, center - triSize - 2);
@@ -283,14 +295,16 @@ export default function SpinningWheel({
       ctx.closePath();
       ctx.fill();
 
-      // "QUAY" text below
+      // "QUAY" text
       ctx.font = "bold 8px system-ui";
-      ctx.letterSpacing = "1px";
+      ctx.textAlign = "center";
+      ctx.textBaseline = "middle";
       ctx.fillText("QUAY", center, center + 14);
 
       ctx.restore();
+      ctx.restore();
     },
-    [players, type, size, colors, textColor]
+    [players, type, size, buildWheelCache]
   );
 
   // Preload images
@@ -301,13 +315,14 @@ export default function SpinningWheel({
         img.crossOrigin = "anonymous";
         img.onload = () => {
           imageCache.current.set(player.id, img);
-          draw(rotationRef.current);
+          wheelDirty.current = true;
+          render(rotationRef.current);
         };
         img.src = player.image;
       }
     });
-    draw(rotationRef.current);
-  }, [players, draw]);
+    render(rotationRef.current);
+  }, [players, render]);
 
   // Handle spinning
   useEffect(() => {
@@ -315,19 +330,12 @@ export default function SpinningWheel({
     if (hasSpun.current) return;
     hasSpun.current = true;
 
-    const winnerIndex = Math.floor(Math.random() * players.length);
     const segmentAngle = (2 * Math.PI) / players.length;
-    // The pointer is at the TOP (-π/2). Segments are drawn starting at -π/2.
-    // Segment i center angle (unrotated) = i * segmentAngle (from the -π/2 start).
-    // To land segment i under the pointer, we need rotation such that:
-    //   rotation + segmentCenter = multiple of 2π (bringing center to -π/2 position)
-    // Since the wheel rotates clockwise, we need negative offset:
+    const winnerIndex = Math.floor(Math.random() * players.length);
     const segmentCenterOffset = winnerIndex * segmentAngle + segmentAngle / 2;
     const fullSpins = (6 + Math.floor(Math.random() * 4)) * 2 * Math.PI;
-    // Small random jitter within the segment bounds (±25% of half-segment)
     const jitter = (Math.random() * 0.5 - 0.25) * segmentAngle * 0.5;
-    const targetRotation =
-      rotationRef.current + fullSpins - segmentCenterOffset + jitter;
+    const targetRotation = rotationRef.current + fullSpins - segmentCenterOffset + jitter;
 
     const startRotation = rotationRef.current;
     const totalRotation = targetRotation - startRotation;
@@ -342,7 +350,7 @@ export default function SpinningWheel({
       const eased = 1 - Math.pow(1 - progress, 4);
 
       rotationRef.current = startRotation + totalRotation * eased;
-      draw(rotationRef.current);
+      render(rotationRef.current);
 
       // Tick sound
       if (progress < 0.85 && players.length > 0) {
@@ -384,19 +392,18 @@ export default function SpinningWheel({
 
   const [dpr, setDpr] = useState(1);
 
-  // Set DPR after mount
   useEffect(() => {
-    setDpr(window.devicePixelRatio || 1);
+    setDpr(Math.min(window.devicePixelRatio || 1, 2)); // Cap at 2x for mobile
   }, []);
 
-  // Set canvas dimensions
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
     canvas.width = size * dpr;
     canvas.height = size * dpr;
-    draw(rotationRef.current);
-  }, [dpr, size, draw]);
+    wheelDirty.current = true;
+    render(rotationRef.current);
+  }, [dpr, size, render]);
 
   // Handle click on center hub to spin
   const handleCanvasClick = useCallback(
