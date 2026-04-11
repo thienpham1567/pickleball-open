@@ -1,0 +1,275 @@
+@import "tailwindcss";
+
+@theme {
+  --font-heading: 'Outfit', system-ui, sans-serif;
+  --font-display: 'Orbitron', monospace;
+  --font-body: 'Outfit', system-ui, sans-serif;
+}
+
+/* ============================================
+   DARK THEME (default)
+   ============================================ */
+:root,
+[data-theme="dark"] {
+  --bg-primary: #0a0f1e;
+  --bg-secondary: #111827;
+  --bg-card: #1a2236;
+  --bg-glass: rgba(15, 23, 42, 0.85);
+  --bg-glass-border: rgba(212, 168, 67, 0.12);
+  --bg-hover: rgba(255, 255, 255, 0.05);
+
+  --gold: #d4a843;
+  --gold-light: #f5d98a;
+  --gold-dark: #b8922d;
+
+  --male: #60a5fa;
+  --male-ring: rgba(96, 165, 250, 0.2);
+  --female: #f472b6;
+  --female-ring: rgba(244, 114, 182, 0.2);
+
+  --text-primary: #f1f5f9;
+  --text-secondary: #94a3b8;
+  --text-muted: #64748b;
+  --text-male: #93c5fd;
+  --text-female: #f9a8d4;
+
+  --ring-offset: #1a2236;
+  --border-subtle: rgba(255, 255, 255, 0.06);
+
+  --sidebar-item-bg: rgba(255, 255, 255, 0.04);
+  --sidebar-item-border: rgba(100, 116, 139, 0.3);
+  --sidebar-item-hover: rgba(212, 168, 67, 0.25);
+
+  --btn-inactive-text: #94a3b8;
+  --btn-inactive-border: #374151;
+  --btn-inactive-hover-text: #e2e8f0;
+  --btn-inactive-hover-border: #6b7280;
+
+  --kbd-bg: #1e293b;
+  --kbd-text: #94a3b8;
+  --kbd-border: #374151;
+
+  --reset-text: #64748b;
+  --reset-border: #374151;
+
+  --modal-backdrop: rgba(0, 0, 0, 0.6);
+
+  --scrollbar: rgba(212, 168, 67, 0.2);
+  --scrollbar-hover: rgba(212, 168, 67, 0.4);
+
+  --shimmer-1: #d4a843;
+  --shimmer-2: #f5d98a;
+  --shimmer-3: #fef3c7;
+
+  --gradient-bg: radial-gradient(ellipse 80% 60% at 50% -20%, rgba(20, 184, 166, 0.12) 0%, transparent 60%),
+    radial-gradient(ellipse 60% 50% at 80% 50%, rgba(212, 168, 67, 0.08) 0%, transparent 50%),
+    radial-gradient(ellipse 60% 50% at 20% 80%, rgba(96, 165, 250, 0.06) 0%, transparent 50%),
+    linear-gradient(180deg, #0a0f1e 0%, #0d1529 40%, #111827 100%);
+
+  --pointer-glow: rgba(212, 168, 67, 0.5);
+  --pointer-color: #d4a843;
+
+  /* Wheel segment colors */
+  --wheel-male-1: #1e3a5f; --wheel-male-2: #1a4a6e; --wheel-male-3: #1e5a7e;
+  --wheel-male-4: #1a3d5c; --wheel-male-5: #234b6a; --wheel-male-6: #1a4260; --wheel-male-7: #153555;
+  --wheel-female-1: #5b1a4a; --wheel-female-2: #6b1d52; --wheel-female-3: #7a205a;
+  --wheel-female-4: #5a1945; --wheel-female-5: #6a1e50; --wheel-female-6: #4d1640; --wheel-female-7: #591848;
+}
+
+/* ============================================
+   LIGHT THEME
+   ============================================ */
+[data-theme="light"] {
+  --bg-primary: #f0f4f8;
+  --bg-secondary: #ffffff;
+  --bg-card: #ffffff;
+  --bg-glass: rgba(255, 255, 255, 0.8);
+  --bg-glass-border: rgba(0, 0, 0, 0.06);
+  --bg-hover: rgba(0, 0, 0, 0.03);
+
+  --gold: #b8922d;
+  --gold-light: #d4a843;
+  --gold-dark: #946f1a;
+
+  --male: #3b82f6;
+  --male-ring: rgba(59, 130, 246, 0.15);
+  --female: #ec4899;
+  --female-ring: rgba(236, 72, 153, 0.15);
+
+  --text-primary: #0f172a;
+  --text-secondary: #475569;
+  --text-muted: #94a3b8;
+  --text-male: #1e40af;
+  --text-female: #9d174d;
+
+  --ring-offset: #ffffff;
+  --border-subtle: rgba(0, 0, 0, 0.06);
+
+  --sidebar-item-bg: rgba(0, 0, 0, 0.02);
+  --sidebar-item-border: rgba(0, 0, 0, 0.06);
+  --sidebar-item-hover: rgba(16, 185, 129, 0.12);
+
+  --btn-inactive-text: #64748b;
+  --btn-inactive-border: #e2e8f0;
+  --btn-inactive-hover-text: #334155;
+  --btn-inactive-hover-border: #cbd5e1;
+
+  --kbd-bg: #f1f5f9;
+  --kbd-text: #64748b;
+  --kbd-border: #e2e8f0;
+
+  --reset-text: #94a3b8;
+  --reset-border: #e2e8f0;
+
+  --modal-backdrop: rgba(0, 0, 0, 0.3);
+
+  --scrollbar: rgba(0, 0, 0, 0.1);
+  --scrollbar-hover: rgba(0, 0, 0, 0.2);
+
+  --shimmer-1: #10b981;
+  --shimmer-2: #3b82f6;
+  --shimmer-3: #8b5cf6;
+
+  --gradient-bg: linear-gradient(135deg, #f0fdf4 0%, #ecfdf5 25%, #f0f9ff 50%, #fdf2f8 75%, #fffbeb 100%);
+
+  --pointer-glow: rgba(0, 0, 0, 0.2);
+  --pointer-color: #1e293b;
+
+  /* Wheel segment colors */
+  --wheel-male-1: #dbeafe; --wheel-male-2: #bfdbfe; --wheel-male-3: #93c5fd;
+  --wheel-male-4: #60a5fa; --wheel-male-5: #3b82f6; --wheel-male-6: #2563eb; --wheel-male-7: #a5c8f7;
+  --wheel-female-1: #fce7f3; --wheel-female-2: #fbcfe8; --wheel-female-3: #f9a8d4;
+  --wheel-female-4: #f472b6; --wheel-female-5: #ec4899; --wheel-female-6: #db2777; --wheel-female-7: #fdd6ea;
+}
+
+/* ---- Base ---- */
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  font-family: var(--font-body);
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+/* ---- Animated gradient background ---- */
+.bg-animated {
+  background: var(--gradient-bg);
+  background-size: 400% 400%;
+  animation: gradientShift 15s ease infinite;
+}
+
+@keyframes gradientShift {
+  0%, 100% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+}
+
+/* ---- Shimmer text ---- */
+.text-shimmer {
+  background: linear-gradient(135deg, var(--shimmer-1), var(--shimmer-2), var(--shimmer-1), var(--shimmer-3), var(--shimmer-1));
+  background-size: 300% 300%;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  animation: shimmer 4s ease-in-out infinite;
+}
+
+@keyframes shimmer {
+  0%, 100% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+}
+
+/* ---- Glass card ---- */
+.glass-card {
+  background: var(--bg-glass);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border: 1px solid var(--bg-glass-border);
+  box-shadow:
+    0 4px 6px -1px rgba(0, 0, 0, 0.1),
+    0 10px 15px -3px rgba(0, 0, 0, 0.08);
+  transition: background 0.3s ease, border-color 0.3s ease;
+}
+
+/* ---- Wheel glow effects ---- */
+.wheel-glow-male {
+  box-shadow:
+    0 0 0 3px var(--male-ring),
+    0 0 50px var(--male-ring),
+    0 20px 80px var(--male-ring);
+}
+
+.wheel-glow-female {
+  box-shadow:
+    0 0 0 3px var(--female-ring),
+    0 0 50px var(--female-ring),
+    0 20px 80px var(--female-ring);
+}
+
+/* ---- Pointer animation ---- */
+@keyframes pointerBounce {
+  0%, 100% { transform: translateX(-50%) translateY(0); }
+  50% { transform: translateX(-50%) translateY(4px); }
+}
+
+.pointer-bounce {
+  animation: pointerBounce 1.5s ease-in-out infinite;
+  filter: drop-shadow(0 2px 4px var(--pointer-glow));
+  color: var(--pointer-color);
+}
+
+/* ---- Heartbeat ---- */
+@keyframes heartbeat {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.25); }
+}
+
+.animate-heartbeat {
+  animation: heartbeat 1s ease-in-out infinite;
+}
+
+/* ---- Card pop in ---- */
+@keyframes cardPop {
+  from { opacity: 0; transform: translateY(20px) scale(0.95); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+.animate-card-pop {
+  animation: cardPop 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+
+/* ---- Crown bounce ---- */
+@keyframes crownBounce {
+  0%, 100% { transform: translateY(0) rotate(-5deg); }
+  50% { transform: translateY(-8px) rotate(5deg); }
+}
+
+.animate-crown {
+  animation: crownBounce 2s ease-in-out infinite;
+}
+
+/* ---- Spinner for button ---- */
+@keyframes spinIcon {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.animate-spin-slow {
+  animation: spinIcon 3s linear infinite;
+}
+
+/* ---- Theme-aware utility classes ---- */
+.text-theme { color: var(--text-primary); }
+.text-theme-secondary { color: var(--text-secondary); }
+.text-theme-muted { color: var(--text-muted); }
+.text-gold { color: var(--gold); }
+.bg-theme-card { background: var(--bg-card); }
+.border-theme { border-color: var(--bg-glass-border); }
+
+/* ---- Scrollbar ---- */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--scrollbar); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: var(--scrollbar-hover); }
