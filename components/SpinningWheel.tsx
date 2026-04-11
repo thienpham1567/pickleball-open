@@ -165,8 +165,8 @@ export default function SpinningWheel({
         ctx.restore();
       }
 
-      // Name badge — pill below photo
-      const badgeDist = radius * 0.82;
+      // Name badge — pill near outer edge
+      const badgeDist = radius * 0.78;
       const bx = Math.cos(midAngle) * badgeDist;
       const by = Math.sin(midAngle) * badgeDist;
 
@@ -178,10 +178,10 @@ export default function SpinningWheel({
       ctx.rotate(textAngle);
 
       // Measure text for pill
-      ctx.font = "bold 10px system-ui";
+      ctx.font = "bold 11px system-ui";
       const textWidth = ctx.measureText(player.displayName).width;
-      const pillW = textWidth + 10;
-      const pillH = 16;
+      const pillW = textWidth + 12;
+      const pillH = 18;
 
       // Pill background
       const pillRadius = pillH / 2;
@@ -192,8 +192,11 @@ export default function SpinningWheel({
       ctx.lineTo(-pillW / 2 + pillRadius, pillH / 2);
       ctx.arc(-pillW / 2 + pillRadius, 0, pillRadius, Math.PI / 2, -Math.PI / 2);
       ctx.closePath();
-      ctx.fillStyle = "rgba(0,0,0,0.55)";
+      ctx.fillStyle = "rgba(0,0,0,0.6)";
       ctx.fill();
+      ctx.strokeStyle = "rgba(255,255,255,0.25)";
+      ctx.lineWidth = 0.5;
+      ctx.stroke();
 
       // Name text
       ctx.textAlign = "center";
@@ -290,32 +293,33 @@ export default function SpinningWheel({
       }
       ctx.restore();
 
-      // 3D Pointer triangle at top
-      const pointerW = 16;
-      const pointerH = 22;
+      // 3D Pointer triangle at top — prominent game show style
+      const pointerW = 20;
+      const pointerH = 28;
+      const pointerTip = 10; // how far it overlaps into the wheel
       ctx.save();
-      ctx.shadowColor = "rgba(0,0,0,0.3)";
-      ctx.shadowBlur = 6;
+      ctx.shadowColor = "rgba(0,0,0,0.4)";
+      ctx.shadowBlur = 8;
       ctx.shadowOffsetY = 2;
       ctx.beginPath();
-      ctx.moveTo(center, 6);
-      ctx.lineTo(center - pointerW / 2, 6 - pointerH + 6);
-      ctx.lineTo(center + pointerW / 2, 6 - pointerH + 6);
+      ctx.moveTo(center, pointerTip);
+      ctx.lineTo(center - pointerW / 2, pointerTip - pointerH);
+      ctx.lineTo(center + pointerW / 2, pointerTip - pointerH);
       ctx.closePath();
 
       // Pointer gradient
-      const ptrGrad = ctx.createLinearGradient(center, 0, center, pointerH + 6);
+      const ptrGrad = ctx.createLinearGradient(center, 0, center, pointerTip);
       if (type === "male") {
-        ptrGrad.addColorStop(0, "#1d4ed8");
+        ptrGrad.addColorStop(0, "#1e40af");
         ptrGrad.addColorStop(1, "#3b82f6");
       } else {
-        ptrGrad.addColorStop(0, "#be185d");
+        ptrGrad.addColorStop(0, "#9d174d");
         ptrGrad.addColorStop(1, "#ec4899");
       }
       ctx.fillStyle = ptrGrad;
       ctx.fill();
       ctx.strokeStyle = "#ffffff";
-      ctx.lineWidth = 2;
+      ctx.lineWidth = 2.5;
       ctx.stroke();
       ctx.restore();
 
