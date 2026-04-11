@@ -22,15 +22,15 @@ function useWheelSize(mode: SpinMode) {
     const update = () => {
       const w = window.innerWidth;
       if (w < 480) {
-        const mobileSize = Math.min(w - 32, 280);
+        const mobileSize = Math.min(w - 24, 320);
         setSizes({ dual: mobileSize, pick: mobileSize });
       } else if (w < 640) {
-        const mobileSize = Math.min(w - 40, 320);
+        const mobileSize = Math.min(w - 32, 360);
         setSizes({ dual: mobileSize, pick: mobileSize });
       } else if (w < 1024) {
-        setSizes({ dual: 300, pick: 340 });
+        setSizes({ dual: 340, pick: 380 });
       } else {
-        setSizes({ dual: 360, pick: 400 });
+        setSizes({ dual: 400, pick: 440 });
       }
     };
     update();
@@ -306,7 +306,6 @@ export default function SpinPage() {
                   <div className="flex flex-col items-center gap-4">
                     <span className="text-xs sm:text-sm font-extrabold tracking-[0.2em]" style={{ color: "var(--male)" }}>♂ NAM</span>
                     <div className="relative">
-                      <div className="absolute -top-4 left-1/2 -translate-x-1/2 z-10 text-2xl pointer-bounce drop-shadow-md">▼</div>
                       <div className={`rounded-full ${remainingMales.length > 0 ? "wheel-glow-male" : ""}`}>
                         <SpinningWheel players={remainingMales} type="male" size={wheelSize} spinning={spinning} onSpinEnd={handleMaleSpinEnd} onSpin={handleSpin} />
                       </div>
@@ -315,7 +314,6 @@ export default function SpinPage() {
                   <div className="flex flex-col items-center gap-4">
                     <span className="text-xs sm:text-sm font-extrabold tracking-[0.2em]" style={{ color: "var(--female)" }}>♀ NỮ</span>
                     <div className="relative">
-                      <div className="absolute -top-4 left-1/2 -translate-x-1/2 z-10 text-2xl pointer-bounce drop-shadow-md">▼</div>
                       <div className={`rounded-full ${remainingFemales.length > 0 ? "wheel-glow-female" : ""}`}>
                         <SpinningWheel players={remainingFemales} type="female" size={wheelSize} spinning={spinning} onSpinEnd={handleFemaleSpinEnd} onSpin={handleSpin} />
                       </div>
@@ -371,7 +369,6 @@ export default function SpinPage() {
                   <div className="flex flex-col items-center gap-4">
                     <span className="text-xs sm:text-sm font-extrabold tracking-[0.2em]" style={{ color: "var(--male)" }}>♂ QUAY NAM</span>
                     <div className="relative">
-                      <div className="absolute -top-4 left-1/2 -translate-x-1/2 z-10 text-2xl pointer-bounce drop-shadow-md">▼</div>
                       <div className={`rounded-full ${remainingMales.length > 0 ? "wheel-glow-male" : ""}`}>
                         <SpinningWheel players={remainingMales} type="male" size={wheelSize} spinning={spinning} onSpinEnd={handleMaleSpinEnd} onSpin={handleSpin} />
                       </div>

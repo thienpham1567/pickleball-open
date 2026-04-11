@@ -101,66 +101,59 @@ export default function SpinningWheel({
 
     const segmentAngle = (2 * Math.PI) / players.length;
 
-    // Outer glow ring
-    ctx.save();
-    ctx.beginPath();
-    ctx.arc(center, center, radius + 6, 0, 2 * Math.PI);
-    ctx.strokeStyle = type === "male" ? "rgba(59, 130, 246, 0.12)" : "rgba(236, 72, 153, 0.12)";
-    ctx.lineWidth = 8;
-    ctx.stroke();
-    ctx.restore();
-
-    // Draw segments (NO rotation — rotation applied when compositing)
+    // Draw segments
     players.forEach((player, i) => {
       const startAngle = i * segmentAngle - Math.PI / 2;
       const endAngle = startAngle + segmentAngle;
       const midAngle = startAngle + segmentAngle / 2;
       const color = colors[i % colors.length];
 
-      // Segment fill with gradient
+      // Segment fill — alternating opacity for depth
       ctx.beginPath();
       ctx.moveTo(center, center);
       ctx.arc(center, center, radius, startAngle, endAngle);
       ctx.closePath();
 
-      const grad = ctx.createRadialGradient(center, center, radius * 0.2, center, center, radius);
-      grad.addColorStop(0, color + "55");
-      grad.addColorStop(0.6, color + "99");
-      grad.addColorStop(1, color);
+      const grad = ctx.createRadialGradient(center, center, radius * 0.25, center, center, radius);
+      const brighten = i % 2 === 0 ? "cc" : "ff";
+      grad.addColorStop(0, color + "44");
+      grad.addColorStop(0.5, color + "88");
+      grad.addColorStop(1, color + brighten);
       ctx.fillStyle = grad;
       ctx.fill();
 
-      // Segment border
+      // Segment divider line
       ctx.beginPath();
       ctx.moveTo(center, center);
-      ctx.arc(center, center, radius, startAngle, endAngle);
-      ctx.closePath();
-      ctx.strokeStyle = "rgba(255,255,255,0.2)";
+      const edgeX = center + Math.cos(startAngle) * radius;
+      const edgeY = center + Math.sin(startAngle) * radius;
+      ctx.lineTo(edgeX, edgeY);
+      ctx.strokeStyle = "rgba(255,255,255,0.3)";
       ctx.lineWidth = 1.5;
       ctx.stroke();
 
-      // Player photo — larger, centered in segment
+      // Player photo — centered in segment
       const img = imageCache.current.get(player.id);
-      if (img) {
-        const photoRadius = Math.min(radius * 0.22, 40);
-        const photoDist = radius * 0.52;
-        const px = Math.cos(midAngle) * photoDist;
-        const py = Math.sin(midAngle) * photoDist;
+      const photoRadius = Math.min(radius * 0.2, 38);
+      const photoDist = radius * 0.55;
+      const px = Math.cos(midAngle) * photoDist;
+      const py = Math.sin(midAngle) * photoDist;
 
-        // Photo shadow
+      if (img) {
+        // White circle background (shadow)
         ctx.save();
-        ctx.shadowColor = "rgba(0,0,0,0.25)";
-        ctx.shadowBlur = 6;
+        ctx.shadowColor = "rgba(0,0,0,0.3)";
+        ctx.shadowBlur = 8;
         ctx.beginPath();
-        ctx.arc(center + px, center + py, photoRadius, 0, 2 * Math.PI);
-        ctx.fillStyle = "#fff";
+        ctx.arc(center + px, center + py, photoRadius + 1, 0, 2 * Math.PI);
+        ctx.fillStyle = "#ffffff";
         ctx.fill();
         ctx.restore();
 
         // Clip and draw photo
         ctx.save();
         ctx.beginPath();
-        ctx.arc(center + px, center + py, photoRadius - 2, 0, 2 * Math.PI);
+        ctx.arc(center + px, center + py, photoRadius - 1, 0, 2 * Math.PI);
         ctx.closePath();
         ctx.clip();
 
@@ -168,82 +161,93 @@ export default function SpinningWheel({
         let sw = photoRadius * 2, sh = photoRadius * 2;
         if (imgAspect > 1) sw = sh * imgAspect;
         else sh = sw / imgAspect;
-
         ctx.drawImage(img, center + px - sw / 2, center + py - sh / 2, sw, sh);
         ctx.restore();
-
-        // Photo white ring border
-        ctx.beginPath();
-        ctx.arc(center + px, center + py, photoRadius, 0, 2 * Math.PI);
-        ctx.strokeStyle = "#ffffff";
-        ctx.lineWidth = 3;
-        ctx.stroke();
       }
 
-      // Player name — curved along outer edge with dark backdrop
-      const nameRadius = radius * 0.86;
-      const nameAngle = midAngle;
-      
-      // Dark backdrop arc behind text
-      const textArcSpan = segmentAngle * 0.7;
-      ctx.save();
-      ctx.beginPath();
-      ctx.arc(center, center, nameRadius + 7, nameAngle - textArcSpan / 2, nameAngle + textArcSpan / 2);
-      ctx.arc(center, center, nameRadius - 7, nameAngle + textArcSpan / 2, nameAngle - textArcSpan / 2, true);
-      ctx.closePath();
-      ctx.fillStyle = "rgba(0,0,0,0.45)";
-      ctx.fill();
-      ctx.restore();
-
-      // Draw name text
-      const tx = Math.cos(nameAngle) * nameRadius;
-      const ty = Math.sin(nameAngle) * nameRadius;
+      // Name badge — pill below photo
+      const badgeDist = radius * 0.82;
+      const bx = Math.cos(midAngle) * badgeDist;
+      const by = Math.sin(midAngle) * badgeDist;
 
       ctx.save();
-      ctx.translate(center + tx, center + ty);
-      let textAngle = nameAngle;
+      ctx.translate(center + bx, center + by);
+      let textAngle = midAngle;
       if (textAngle > Math.PI / 2 && textAngle < (3 * Math.PI) / 2) textAngle += Math.PI;
       if (textAngle < -Math.PI / 2 && textAngle > (-3 * Math.PI) / 2) textAngle += Math.PI;
       ctx.rotate(textAngle);
-      ctx.font = "bold 12px system-ui";
+
+      // Measure text for pill
+      ctx.font = "bold 10px system-ui";
+      const textWidth = ctx.measureText(player.displayName).width;
+      const pillW = textWidth + 10;
+      const pillH = 16;
+
+      // Pill background
+      const pillRadius = pillH / 2;
+      ctx.beginPath();
+      ctx.moveTo(-pillW / 2 + pillRadius, -pillH / 2);
+      ctx.lineTo(pillW / 2 - pillRadius, -pillH / 2);
+      ctx.arc(pillW / 2 - pillRadius, 0, pillRadius, -Math.PI / 2, Math.PI / 2);
+      ctx.lineTo(-pillW / 2 + pillRadius, pillH / 2);
+      ctx.arc(-pillW / 2 + pillRadius, 0, pillRadius, Math.PI / 2, -Math.PI / 2);
+      ctx.closePath();
+      ctx.fillStyle = "rgba(0,0,0,0.55)";
+      ctx.fill();
+
+      // Name text
       ctx.textAlign = "center";
       ctx.textBaseline = "middle";
-
-      // Strong outline for readability
-      ctx.strokeStyle = "rgba(0,0,0,0.6)";
-      ctx.lineWidth = 3;
-      ctx.lineJoin = "round";
-      ctx.strokeText(player.displayName, 0, 0);
-
-      // White fill
       ctx.fillStyle = "#ffffff";
-      ctx.fillText(player.displayName, 0, 0);
+      ctx.fillText(player.displayName, 0, 0.5);
       ctx.restore();
     });
 
-    // Premium outer ring
+    // Outer metallic ring
     ctx.beginPath();
     ctx.arc(center, center, radius, 0, 2 * Math.PI);
     const ringGrad = ctx.createLinearGradient(0, 0, size, size);
     if (type === "male") {
-      ringGrad.addColorStop(0, "rgba(59, 130, 246, 0.4)");
-      ringGrad.addColorStop(0.5, "rgba(99, 160, 255, 0.5)");
-      ringGrad.addColorStop(1, "rgba(59, 130, 246, 0.4)");
+      ringGrad.addColorStop(0, "rgba(59, 130, 246, 0.5)");
+      ringGrad.addColorStop(0.5, "rgba(147, 197, 253, 0.7)");
+      ringGrad.addColorStop(1, "rgba(59, 130, 246, 0.5)");
     } else {
-      ringGrad.addColorStop(0, "rgba(236, 72, 153, 0.4)");
-      ringGrad.addColorStop(0.5, "rgba(255, 120, 180, 0.5)");
-      ringGrad.addColorStop(1, "rgba(236, 72, 153, 0.4)");
+      ringGrad.addColorStop(0, "rgba(236, 72, 153, 0.5)");
+      ringGrad.addColorStop(0.5, "rgba(251, 146, 191, 0.7)");
+      ringGrad.addColorStop(1, "rgba(236, 72, 153, 0.5)");
     }
     ctx.strokeStyle = ringGrad;
-    ctx.lineWidth = 5;
+    ctx.lineWidth = 6;
     ctx.stroke();
 
     // Inner highlight ring
     ctx.beginPath();
-    ctx.arc(center, center, radius - 3, 0, 2 * Math.PI);
-    ctx.strokeStyle = "rgba(255,255,255,0.15)";
+    ctx.arc(center, center, radius - 4, 0, 2 * Math.PI);
+    ctx.strokeStyle = "rgba(255,255,255,0.12)";
     ctx.lineWidth = 1;
     ctx.stroke();
+
+    // Decorative PEGS around outer edge (game show style)
+    const pegCount = players.length * 3; // 3 pegs per segment
+    const pegRadius = 3.5;
+    for (let i = 0; i < pegCount; i++) {
+      const pegAngle = (i / pegCount) * 2 * Math.PI - Math.PI / 2;
+      const pegX = center + Math.cos(pegAngle) * (radius - 1);
+      const pegY = center + Math.sin(pegAngle) * (radius - 1);
+
+      ctx.beginPath();
+      ctx.arc(pegX, pegY, pegRadius, 0, 2 * Math.PI);
+      // Alternate peg colors for sparkle
+      if (i % 3 === 0) {
+        ctx.fillStyle = "rgba(255,255,255,0.9)";
+      } else {
+        ctx.fillStyle = type === "male" ? "rgba(147,197,253,0.6)" : "rgba(251,146,191,0.6)";
+      }
+      ctx.fill();
+    }
+
+    // Pointer triangle at top (drawn on cached canvas so it rotates — we'll also draw a static one on render)
+    // We skip it here since pointer should be static
 
     ctx.restore();
     wheelDirty.current = false;
@@ -286,47 +290,84 @@ export default function SpinningWheel({
       }
       ctx.restore();
 
-      // Center hub (not rotated, drawn on top)
-      const hubRadius = 32;
+      // 3D Pointer triangle at top
+      const pointerW = 16;
+      const pointerH = 22;
       ctx.save();
-      ctx.shadowColor = "rgba(0,0,0,0.15)";
-      ctx.shadowBlur = 12;
+      ctx.shadowColor = "rgba(0,0,0,0.3)";
+      ctx.shadowBlur = 6;
+      ctx.shadowOffsetY = 2;
+      ctx.beginPath();
+      ctx.moveTo(center, 6);
+      ctx.lineTo(center - pointerW / 2, 6 - pointerH + 6);
+      ctx.lineTo(center + pointerW / 2, 6 - pointerH + 6);
+      ctx.closePath();
+
+      // Pointer gradient
+      const ptrGrad = ctx.createLinearGradient(center, 0, center, pointerH + 6);
+      if (type === "male") {
+        ptrGrad.addColorStop(0, "#1d4ed8");
+        ptrGrad.addColorStop(1, "#3b82f6");
+      } else {
+        ptrGrad.addColorStop(0, "#be185d");
+        ptrGrad.addColorStop(1, "#ec4899");
+      }
+      ctx.fillStyle = ptrGrad;
+      ctx.fill();
+      ctx.strokeStyle = "#ffffff";
+      ctx.lineWidth = 2;
+      ctx.stroke();
+      ctx.restore();
+
+      // Center hub (not rotated, drawn on top)
+      const hubRadius = 36;
+      ctx.save();
+      ctx.shadowColor = "rgba(0,0,0,0.2)";
+      ctx.shadowBlur = 15;
       ctx.shadowOffsetY = 3;
 
+      // Hub outer ring
+      ctx.beginPath();
+      ctx.arc(center, center, hubRadius + 3, 0, 2 * Math.PI);
+      ctx.fillStyle = "rgba(255,255,255,0.2)";
+      ctx.fill();
+
+      // Hub main circle
       ctx.beginPath();
       ctx.arc(center, center, hubRadius, 0, 2 * Math.PI);
-      const hubGrad = ctx.createRadialGradient(center - 6, center - 6, 0, center, center, hubRadius);
+      const hubGrad = ctx.createRadialGradient(center - 8, center - 8, 0, center, center, hubRadius);
       if (type === "male") {
-        hubGrad.addColorStop(0, "#60a5fa");
-        hubGrad.addColorStop(0.7, "#3b82f6");
-        hubGrad.addColorStop(1, "#2563eb");
+        hubGrad.addColorStop(0, "#93c5fd");
+        hubGrad.addColorStop(0.4, "#3b82f6");
+        hubGrad.addColorStop(1, "#1d4ed8");
       } else {
-        hubGrad.addColorStop(0, "#f472b6");
-        hubGrad.addColorStop(0.7, "#ec4899");
-        hubGrad.addColorStop(1, "#db2777");
+        hubGrad.addColorStop(0, "#fbcfe8");
+        hubGrad.addColorStop(0.4, "#ec4899");
+        hubGrad.addColorStop(1, "#be185d");
       }
       ctx.fillStyle = hubGrad;
       ctx.fill();
-      ctx.strokeStyle = "rgba(255,255,255,0.5)";
-      ctx.lineWidth = 2.5;
+      ctx.strokeStyle = "rgba(255,255,255,0.6)";
+      ctx.lineWidth = 2;
       ctx.stroke();
       ctx.shadowColor = "transparent";
 
-      // Play icon triangle
+      // Play icon — larger triangle
       ctx.fillStyle = "#ffffff";
-      const triSize = 8;
+      const triSize = 10;
       ctx.beginPath();
-      ctx.moveTo(center - triSize * 0.6, center - triSize - 2);
-      ctx.lineTo(center + triSize * 0.8, center - 2);
-      ctx.lineTo(center - triSize * 0.6, center + triSize - 2);
+      ctx.moveTo(center - triSize * 0.5, center - triSize - 1);
+      ctx.lineTo(center + triSize * 0.9, center - 1);
+      ctx.lineTo(center - triSize * 0.5, center + triSize - 1);
       ctx.closePath();
       ctx.fill();
 
       // "QUAY" text
-      ctx.font = "bold 8px system-ui";
+      ctx.font = "bold 9px system-ui";
       ctx.textAlign = "center";
       ctx.textBaseline = "middle";
-      ctx.fillText("QUAY", center, center + 14);
+      ctx.fillStyle = "#ffffff";
+      ctx.fillText("QUAY", center, center + 16);
 
       ctx.restore();
       ctx.restore();
