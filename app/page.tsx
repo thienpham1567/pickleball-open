@@ -86,7 +86,7 @@ export default function SpinPage() {
   const wheelSize = useWheelSize(mode);
 
   // Countdown lock — unlock at 18:00 today
-  const UNLOCK_HOUR = 18; // 6 PM
+  const UNLOCK_HOUR = 19; // 7 PM
   const [countdown, setCountdown] = useState("");
   const [isLocked, setIsLocked] = useState(true);
 
@@ -823,7 +823,7 @@ export default function SpinPage() {
                 transition={{ delay: 0.4 }}
                 className="text-2xl sm:text-4xl font-black text-white mb-2 tracking-tight"
               >
-                PICKLEBALL OPEN
+                PICKLEBALL TÂN PHÚ OPEN
               </motion.h2>
 
               <motion.p
@@ -832,7 +832,7 @@ export default function SpinPage() {
                 transition={{ delay: 0.6 }}
                 className="text-blue-300 text-sm sm:text-base mb-10 font-medium"
               >
-                Vòng quay bắt cặp sẽ mở lúc 18:00
+                Vòng quay bắt cặp sẽ mở lúc 19:00
               </motion.p>
 
               <motion.div
