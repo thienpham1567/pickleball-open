@@ -10,6 +10,7 @@ interface SpinningWheelProps {
   spinning: boolean;
   onSpinEnd?: (player: Player) => void;
   onSpin?: () => void;
+  targetPlayerId?: string; // If set, the wheel will land on this player
 }
 
 // Read wheel colors from CSS custom properties for theme support
@@ -33,6 +34,7 @@ export default function SpinningWheel({
   spinning,
   onSpinEnd,
   onSpin,
+  targetPlayerId,
 }: SpinningWheelProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const rotationRef = useRef(0);
@@ -443,7 +445,14 @@ export default function SpinningWheel({
     hasSpun.current = true;
 
     const segmentAngle = (2 * Math.PI) / players.length;
-    const winnerIndex = Math.floor(Math.random() * players.length);
+    // Use predetermined target if provided, otherwise random
+    let winnerIndex: number;
+    if (targetPlayerId) {
+      const targetIdx = players.findIndex(p => p.id === targetPlayerId);
+      winnerIndex = targetIdx >= 0 ? targetIdx : Math.floor(Math.random() * players.length);
+    } else {
+      winnerIndex = Math.floor(Math.random() * players.length);
+    }
     const segmentCenterOffset = winnerIndex * segmentAngle + segmentAngle / 2;
     const fullSpins = (6 + Math.floor(Math.random() * 4)) * 2 * Math.PI;
     const jitter = (Math.random() * 0.5 - 0.25) * segmentAngle * 0.5;

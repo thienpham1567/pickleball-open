@@ -15,6 +15,22 @@ import { fetchPlayers, fetchPairs, savePairs, resetTournament } from "@/lib/supa
 
 type SpinMode = "dual" | "pick";
 
+// Predetermined pair mappings: male ID → female ID
+const PREDETERMINED_PAIRS: Record<string, string> = {
+  "a-dung-gia": "c-truc",       // a Dũng Lớn - c Trúc
+  "a-phap": "c-quynh",          // a Pháp - c Quỳnh
+  "a-thin": "c-me",             // a Thìn - Trẻ nhất
+  "a-duy": "c-kieu",            // a Duy - c Kiều
+  "a-dung": "c-thao",           // a Dũng nhỏ - c Ngô Thảo
+  "a-bao": "c-thanh-thao",      // a Bảo - c Thanh Thảo
+  "a-tuyen": "c-thu",           // a Tuyến - c Thu Julie
+};
+
+// Reverse map: female ID → male ID
+const FEMALE_TO_MALE: Record<string, string> = Object.fromEntries(
+  Object.entries(PREDETERMINED_PAIRS).map(([m, f]) => [f, m])
+);
+
 function useWheelSize(mode: SpinMode) {
   const [sizes, setSizes] = useState({ dual: 360, pick: 400 });
 
@@ -54,6 +70,8 @@ export default function SpinPage() {
   const [mode, setMode] = useState<SpinMode>("dual");
   const [selectedFemale, setSelectedFemale] = useState<Player | null>(null);
   const [dataLoaded, setDataLoaded] = useState(false);
+  const [targetMaleId, setTargetMaleId] = useState<string | undefined>();
+  const [targetFemaleId, setTargetFemaleId] = useState<string | undefined>();
   const wheelSize = useWheelSize(mode);
 
   const totalPairs = Math.min(malePlayers.length, femalePlayers.length);
@@ -143,6 +161,25 @@ export default function SpinPage() {
       return;
     }
 
+    // Pick a random male, then find his predetermined female
+    const randomMale = remainingMales[Math.floor(Math.random() * remainingMales.length)];
+    const pairedFemaleId = PREDETERMINED_PAIRS[randomMale.id];
+    // Check if that female is still available
+    const femaleAvailable = remainingFemales.some(f => f.id === pairedFemaleId);
+    if (femaleAvailable) {
+      setTargetMaleId(randomMale.id);
+      setTargetFemaleId(pairedFemaleId);
+    } else {
+      // Fallback: pick any available pair
+      for (const m of remainingMales) {
+        const fId = PREDETERMINED_PAIRS[m.id];
+        if (remainingFemales.some(f => f.id === fId)) {
+          setTargetMaleId(m.id);
+          setTargetFemaleId(fId);
+          break;
+        }
+      }
+    }
     setSpinning(true);
     setPendingMale(null);
     setPendingFemale(null);
@@ -165,6 +202,14 @@ export default function SpinPage() {
       return;
     }
 
+    // Find the predetermined male for the selected female
+    const pairedMaleId = FEMALE_TO_MALE[selectedFemale.id];
+    if (pairedMaleId && remainingMales.some(m => m.id === pairedMaleId)) {
+      setTargetMaleId(pairedMaleId);
+    } else {
+      setTargetMaleId(undefined); // random fallback
+    }
+    setTargetFemaleId(undefined);
     setSpinning(true);
     setPendingMale(null);
     setPendingFemale(selectedFemale);
@@ -307,7 +352,7 @@ export default function SpinPage() {
                     <span className="text-xs sm:text-sm font-extrabold tracking-[0.2em]" style={{ color: "var(--male)" }}>♂ NAM</span>
                     <div className="relative">
                       <div className={`rounded-full ${remainingMales.length > 0 ? "wheel-glow-male" : ""}`}>
-                        <SpinningWheel players={remainingMales} type="male" size={wheelSize} spinning={spinning} onSpinEnd={handleMaleSpinEnd} onSpin={handleSpin} />
+                        <SpinningWheel players={remainingMales} type="male" size={wheelSize} spinning={spinning} onSpinEnd={handleMaleSpinEnd} onSpin={handleSpin} targetPlayerId={targetMaleId} />
                       </div>
                     </div>
                   </div>
@@ -315,7 +360,7 @@ export default function SpinPage() {
                     <span className="text-xs sm:text-sm font-extrabold tracking-[0.2em]" style={{ color: "var(--female)" }}>♀ NỮ</span>
                     <div className="relative">
                       <div className={`rounded-full ${remainingFemales.length > 0 ? "wheel-glow-female" : ""}`}>
-                        <SpinningWheel players={remainingFemales} type="female" size={wheelSize} spinning={spinning} onSpinEnd={handleFemaleSpinEnd} onSpin={handleSpin} />
+                        <SpinningWheel players={remainingFemales} type="female" size={wheelSize} spinning={spinning} onSpinEnd={handleFemaleSpinEnd} onSpin={handleSpin} targetPlayerId={targetFemaleId} />
                       </div>
                     </div>
                   </div>
@@ -370,7 +415,7 @@ export default function SpinPage() {
                     <span className="text-xs sm:text-sm font-extrabold tracking-[0.2em]" style={{ color: "var(--male)" }}>♂ QUAY NAM</span>
                     <div className="relative">
                       <div className={`rounded-full ${remainingMales.length > 0 ? "wheel-glow-male" : ""}`}>
-                        <SpinningWheel players={remainingMales} type="male" size={wheelSize} spinning={spinning} onSpinEnd={handleMaleSpinEnd} onSpin={handleSpin} />
+                        <SpinningWheel players={remainingMales} type="male" size={wheelSize} spinning={spinning} onSpinEnd={handleMaleSpinEnd} onSpin={handleSpin} targetPlayerId={targetMaleId} />
                       </div>
                     </div>
                   </div>
