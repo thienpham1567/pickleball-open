@@ -123,9 +123,9 @@ export default function SpinningWheel({
       ctx.arc(center, center, radius, startAngle, endAngle);
       ctx.closePath();
 
-      const grad = ctx.createRadialGradient(center, center, radius * 0.15, center, center, radius);
-      grad.addColorStop(0, color + "40");
-      grad.addColorStop(0.5, color + "80");
+      const grad = ctx.createRadialGradient(center, center, radius * 0.2, center, center, radius);
+      grad.addColorStop(0, color + "55");
+      grad.addColorStop(0.6, color + "99");
       grad.addColorStop(1, color);
       ctx.fillStyle = grad;
       ctx.fill();
@@ -135,21 +135,32 @@ export default function SpinningWheel({
       ctx.moveTo(center, center);
       ctx.arc(center, center, radius, startAngle, endAngle);
       ctx.closePath();
-      ctx.strokeStyle = "rgba(255,255,255,0.15)";
+      ctx.strokeStyle = "rgba(255,255,255,0.2)";
       ctx.lineWidth = 1.5;
       ctx.stroke();
 
-      // Player photo
+      // Player photo — larger, centered in segment
       const img = imageCache.current.get(player.id);
       if (img) {
-        const photoRadius = Math.min(radius * 0.18, 36);
-        const photoDist = radius * 0.58;
+        const photoRadius = Math.min(radius * 0.22, 40);
+        const photoDist = radius * 0.52;
         const px = Math.cos(midAngle) * photoDist;
         const py = Math.sin(midAngle) * photoDist;
 
+        // Photo shadow
         ctx.save();
+        ctx.shadowColor = "rgba(0,0,0,0.25)";
+        ctx.shadowBlur = 6;
         ctx.beginPath();
         ctx.arc(center + px, center + py, photoRadius, 0, 2 * Math.PI);
+        ctx.fillStyle = "#fff";
+        ctx.fill();
+        ctx.restore();
+
+        // Clip and draw photo
+        ctx.save();
+        ctx.beginPath();
+        ctx.arc(center + px, center + py, photoRadius - 2, 0, 2 * Math.PI);
         ctx.closePath();
         ctx.clip();
 
@@ -161,35 +172,51 @@ export default function SpinningWheel({
         ctx.drawImage(img, center + px - sw / 2, center + py - sh / 2, sw, sh);
         ctx.restore();
 
-        // Photo border
+        // Photo white ring border
         ctx.beginPath();
         ctx.arc(center + px, center + py, photoRadius, 0, 2 * Math.PI);
-        ctx.strokeStyle = "rgba(255,255,255,0.85)";
-        ctx.lineWidth = 3.5;
+        ctx.strokeStyle = "#ffffff";
+        ctx.lineWidth = 3;
         ctx.stroke();
       }
 
-      // Player name
-      const textDist = radius * 0.85;
-      const tx = Math.cos(midAngle) * textDist;
-      const ty = Math.sin(midAngle) * textDist;
+      // Player name — curved along outer edge with dark backdrop
+      const nameRadius = radius * 0.86;
+      const nameAngle = midAngle;
+      
+      // Dark backdrop arc behind text
+      const textArcSpan = segmentAngle * 0.7;
+      ctx.save();
+      ctx.beginPath();
+      ctx.arc(center, center, nameRadius + 7, nameAngle - textArcSpan / 2, nameAngle + textArcSpan / 2);
+      ctx.arc(center, center, nameRadius - 7, nameAngle + textArcSpan / 2, nameAngle - textArcSpan / 2, true);
+      ctx.closePath();
+      ctx.fillStyle = "rgba(0,0,0,0.45)";
+      ctx.fill();
+      ctx.restore();
+
+      // Draw name text
+      const tx = Math.cos(nameAngle) * nameRadius;
+      const ty = Math.sin(nameAngle) * nameRadius;
 
       ctx.save();
       ctx.translate(center + tx, center + ty);
-      let textAngle = midAngle;
+      let textAngle = nameAngle;
       if (textAngle > Math.PI / 2 && textAngle < (3 * Math.PI) / 2) textAngle += Math.PI;
       if (textAngle < -Math.PI / 2 && textAngle > (-3 * Math.PI) / 2) textAngle += Math.PI;
       ctx.rotate(textAngle);
-      ctx.font = "bold 11px system-ui";
+      ctx.font = "bold 12px system-ui";
       ctx.textAlign = "center";
       ctx.textBaseline = "middle";
-      ctx.strokeStyle = "rgba(0,0,0,0.3)";
-      ctx.lineWidth = 2.5;
+
+      // Strong outline for readability
+      ctx.strokeStyle = "rgba(0,0,0,0.6)";
+      ctx.lineWidth = 3;
       ctx.lineJoin = "round";
       ctx.strokeText(player.displayName, 0, 0);
-      ctx.fillStyle = textColor;
-      ctx.shadowColor = "rgba(0,0,0,0.2)";
-      ctx.shadowBlur = 3;
+
+      // White fill
+      ctx.fillStyle = "#ffffff";
       ctx.fillText(player.displayName, 0, 0);
       ctx.restore();
     });
