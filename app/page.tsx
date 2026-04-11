@@ -67,7 +67,7 @@ export default function SpinPage() {
   const [showResult, setShowResult] = useState(false);
   const [lastPair, setLastPair] = useState<Pair | null>(null);
   const [showResetConfirm, setShowResetConfirm] = useState(false);
-  const [mode, setMode] = useState<SpinMode>("dual");
+  const [mode, setMode] = useState<SpinMode>("pick");
   const [selectedFemale, setSelectedFemale] = useState<Player | null>(null);
   const [dataLoaded, setDataLoaded] = useState(false);
   const [targetMaleId, setTargetMaleId] = useState<string | undefined>();
@@ -298,29 +298,7 @@ export default function SpinPage() {
         <div className="max-w-[1500px] mx-auto flex flex-col lg:flex-row gap-4 sm:gap-6 px-3 sm:px-4 lg:px-6">
           {/* ===== LEFT: Wheels & Controls ===== */}
           <div className="flex-1 min-w-0">
-            {/* Mode Toggle */}
-            {!isComplete && (
-              <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                className="flex justify-center gap-1.5 sm:gap-2 pb-3 sm:pb-4"
-              >
-                <button
-                  onClick={() => setMode("dual")}
-                  className={`px-3 sm:px-5 py-2 rounded-full text-[11px] sm:text-xs font-bold tracking-wider border transition-all ${mode === "dual" ? "bg-gradient-to-r from-blue-500 to-pink-500 text-white shadow-lg border-transparent" : ""}`}
-                  style={mode !== "dual" ? { color: "var(--btn-inactive-text)", borderColor: "var(--btn-inactive-border)" } : {}}
-                >
-                  🎯 Quay đôi
-                </button>
-                <button
-                  onClick={() => setMode("pick")}
-                  className={`px-3 sm:px-5 py-2 rounded-full text-[11px] sm:text-xs font-bold tracking-wider border transition-all ${mode === "pick" ? "bg-gradient-to-r from-blue-500 to-emerald-500 text-white shadow-lg border-transparent" : ""}`}
-                  style={mode !== "pick" ? { color: "var(--btn-inactive-text)", borderColor: "var(--btn-inactive-border)" } : {}}
-                >
-                  🏓 Chọn nữ + Quay nam
-                </button>
-              </motion.div>
-            )}
+            {/* Mode toggle hidden — using pick mode only */}
 
             {/* Status */}
             <motion.div
