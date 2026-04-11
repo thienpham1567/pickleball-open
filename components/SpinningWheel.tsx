@@ -165,44 +165,84 @@ export default function SpinningWheel({
         ctx.restore();
       }
 
-      // Name badge — pill near outer edge
-      const badgeDist = radius * 0.78;
-      const bx = Math.cos(midAngle) * badgeDist;
-      const by = Math.sin(midAngle) * badgeDist;
-
+      // Player name — curved along the arc
+      const nameArcRadius = radius * 0.84;
+      const name = player.displayName;
       ctx.save();
-      ctx.translate(center + bx, center + by);
-      let textAngle = midAngle;
-      if (textAngle > Math.PI / 2 && textAngle < (3 * Math.PI) / 2) textAngle += Math.PI;
-      if (textAngle < -Math.PI / 2 && textAngle > (-3 * Math.PI) / 2) textAngle += Math.PI;
-      ctx.rotate(textAngle);
-
-      // Measure text for pill
       ctx.font = "bold 11px system-ui";
-      const textWidth = ctx.measureText(player.displayName).width;
-      const pillW = textWidth + 12;
-      const pillH = 18;
-
-      // Pill background
-      const pillRadius = pillH / 2;
-      ctx.beginPath();
-      ctx.moveTo(-pillW / 2 + pillRadius, -pillH / 2);
-      ctx.lineTo(pillW / 2 - pillRadius, -pillH / 2);
-      ctx.arc(pillW / 2 - pillRadius, 0, pillRadius, -Math.PI / 2, Math.PI / 2);
-      ctx.lineTo(-pillW / 2 + pillRadius, pillH / 2);
-      ctx.arc(-pillW / 2 + pillRadius, 0, pillRadius, Math.PI / 2, -Math.PI / 2);
-      ctx.closePath();
-      ctx.fillStyle = "rgba(0,0,0,0.6)";
-      ctx.fill();
-      ctx.strokeStyle = "rgba(255,255,255,0.25)";
-      ctx.lineWidth = 0.5;
-      ctx.stroke();
-
-      // Name text
       ctx.textAlign = "center";
       ctx.textBaseline = "middle";
-      ctx.fillStyle = "#ffffff";
-      ctx.fillText(player.displayName, 0, 0.5);
+
+      // Calculate total text width to center it on the arc
+      const charWidths = name.split("").map(c => ctx.measureText(c).width);
+      const totalWidth = charWidths.reduce((a, b) => a + b, 0);
+      const totalAngle = totalWidth / nameArcRadius;
+
+      // Start angle (centered on midAngle)
+      let charAngle = midAngle - totalAngle / 2;
+
+      // Determine if text is on the bottom half (needs to be flipped)
+      const isBottom = midAngle > 0 && midAngle < Math.PI;
+
+      if (isBottom) {
+        // Draw text on inner arc, reading left-to-right when upside down
+        const innerRadius = nameArcRadius;
+        const charWidthsRev = [...charWidths].reverse();
+        const nameRev = name.split("").reverse();
+        let charAngleRev = midAngle - totalAngle / 2;
+
+        nameRev.forEach((char, ci) => {
+          const halfChar = charWidthsRev[ci] / innerRadius / 2;
+          charAngleRev += halfChar;
+
+          const cx = center + Math.cos(charAngleRev) * innerRadius;
+          const cy = center + Math.sin(charAngleRev) * innerRadius;
+
+          ctx.save();
+          ctx.translate(cx, cy);
+          ctx.rotate(charAngleRev + Math.PI / 2 + Math.PI);
+
+          // Outline
+          ctx.strokeStyle = "rgba(0,0,0,0.5)";
+          ctx.lineWidth = 2.5;
+          ctx.lineJoin = "round";
+          ctx.strokeText(char, 0, 0);
+
+          // Fill
+          ctx.fillStyle = "#ffffff";
+          ctx.fillText(char, 0, 0);
+          ctx.restore();
+
+          charAngleRev += halfChar;
+        });
+      } else {
+        // Draw text normally on outer arc
+        name.split("").forEach((char, ci) => {
+          const halfChar = charWidths[ci] / nameArcRadius / 2;
+          charAngle += halfChar;
+
+          const cx = center + Math.cos(charAngle) * nameArcRadius;
+          const cy = center + Math.sin(charAngle) * nameArcRadius;
+
+          ctx.save();
+          ctx.translate(cx, cy);
+          ctx.rotate(charAngle + Math.PI / 2);
+
+          // Outline
+          ctx.strokeStyle = "rgba(0,0,0,0.5)";
+          ctx.lineWidth = 2.5;
+          ctx.lineJoin = "round";
+          ctx.strokeText(char, 0, 0);
+
+          // Fill
+          ctx.fillStyle = "#ffffff";
+          ctx.fillText(char, 0, 0);
+          ctx.restore();
+
+          charAngle += halfChar;
+        });
+      }
+
       ctx.restore();
     });
 
