@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback, useEffect } from "react";
+import { useState, useCallback, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
 import Image from "next/image";
@@ -21,6 +21,7 @@ import {
   fetchPairs,
   savePairs,
   resetTournament,
+  subscribeTournamentData,
 } from "@/lib/supabase-data";
 
 type SpinMode = "dual" | "pick";
@@ -150,6 +151,39 @@ export default function SpinPage() {
       savePairs(pairs);
     }
   }, [pairs, dataLoaded]);
+
+  // Track local pair count to detect remote changes
+  const localPairCountRef = useRef(0);
+  useEffect(() => { localPairCountRef.current = pairs.length; }, [pairs]);
+
+  // Realtime subscription — detect data changes from other devices
+  const [hasRemoteUpdate, setHasRemoteUpdate] = useState(false);
+
+  useEffect(() => {
+    if (!dataLoaded) return;
+
+    const unsub = subscribeTournamentData((key, data) => {
+      if (key === "pairs") {
+        const remotePairs = (data as Pair[]) ?? [];
+        const localCount = localPairCountRef.current;
+        // Show overlay if remote count differs from local (someone else spun or reset)
+        if (remotePairs.length !== localCount) {
+          setHasRemoteUpdate(true);
+        }
+      }
+    });
+
+    return unsub;
+  }, [dataLoaded]);
+
+  const handleReloadData = useCallback(async () => {
+    const dbPairs = await fetchPairs();
+    setPairs(dbPairs);
+    localStorage.setItem("pickleball-pairs", JSON.stringify(dbPairs));
+    setHasRemoteUpdate(false);
+    setShowResult(false);
+    setSpinning(false);
+  }, []);
 
   const pairedMaleIds = pairs.map((p) => p.male.id);
   const pairedFemaleIds = pairs.map((p) => p.female.id);
@@ -707,6 +741,41 @@ export default function SpinPage() {
         onConfirm={doReset}
         onCancel={() => setShowResetConfirm(false)}
       />
+
+      {/* Remote data change overlay */}
+      <AnimatePresence>
+        {hasRemoteUpdate && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[9999] flex items-center justify-center"
+            style={{ backdropFilter: "blur(8px)", backgroundColor: "rgba(0,0,0,0.5)" }}
+          >
+            <motion.div
+              initial={{ scale: 0.8, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.8, opacity: 0 }}
+              className="text-center p-8 rounded-2xl shadow-2xl max-w-sm mx-4"
+              style={{ backgroundColor: "var(--bg-primary)", border: "1px solid var(--border)" }}
+            >
+              <div className="text-5xl mb-4">🔄</div>
+              <h3 className="text-xl font-bold mb-2" style={{ color: "var(--text-primary)" }}>
+                Dữ liệu đã thay đổi!
+              </h3>
+              <p className="text-sm mb-6" style={{ color: "var(--text-secondary)" }}>
+                Có người đã quay trên thiết bị khác. Nhấn nút bên dưới để cập nhật dữ liệu mới nhất.
+              </p>
+              <button
+                onClick={handleReloadData}
+                className="px-8 py-3 rounded-full font-bold text-white bg-gradient-to-r from-blue-500 to-emerald-500 hover:from-blue-600 hover:to-emerald-600 shadow-lg transition-all active:scale-95"
+              >
+                🔄 Tải lại dữ liệu
+              </button>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </>
   );
 }
