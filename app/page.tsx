@@ -245,6 +245,24 @@ export default function SpinPage() {
   const isLastPair =
     remainingMales.length === 1 && remainingFemales.length === 1;
 
+  // Auto-pair the last remaining couple (no spin needed)
+  useEffect(() => {
+    if (!isLastPair || isComplete || spinning) return;
+    const timeout = setTimeout(() => {
+      const newPair: Pair = { male: remainingMales[0], female: remainingFemales[0] };
+      setLastPair(newPair);
+      setPairs((prev) => [...prev, newPair]);
+      setShowResult(true);
+      confetti({
+        particleCount: 120,
+        spread: 80,
+        origin: { y: 0.6 },
+        colors: ["#10b981", "#3b82f6", "#ec4899", "#f59e0b", "#8b5cf6"],
+      });
+    }, 800);
+    return () => clearTimeout(timeout);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isLastPair, isComplete, spinning]);
   // Fire confetti helper
   const fireConfetti = () => {
     confetti({
