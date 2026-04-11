@@ -28,13 +28,15 @@ type SpinMode = "dual" | "pick";
 
 // Predetermined pair mappings: male ID → female ID
 const PREDETERMINED_PAIRS: Record<string, string> = {
-  "a-bao": "c-truc", // a Dũng Lớn - c Trúc
-  "a-phap": "c-quynh", // a Pháp - c Quỳnh
-  "a-thin": "c-me", // a Thìn - Trẻ nhất
-  "a-duy": "c-kieu", // a Duy - c Kiều
-  "a-dung": "c-thao", // a Dũng nhỏ - c Ngô Thảo
-  "a-dung-gia": "c-thanh-thao", // a Bảo - c Thanh Thảo
-  "a-tuyen": "c-thu", // a Tuyến - c Thu Julie
+  "a-dung-gia": "c-me",          // a Dũng Lớn - c Thiên (swapped)
+  "a-phap": "c-quynh",           // a Pháp - c Quỳnh
+  "a-thin": "c-thanh-thao",      // a Thìn - c Thanh Thảo (swapped)
+  "a-duy": "c-kieu",             // a Duy - c Kiều
+  "a-dung": "c-thao",            // a Dũng nhỏ - c Ngô Thảo
+  "a-bao": "c-truc",             // a Bảo - c Trúc
+  "a-tuyen": "c-thu",            // a Tuyến - c Thu Julie
+  "a-phat": "c-le",              // a Phát - c Lệ (new)
+  "a-the": "c-quy",              // a Thế - c Quý (new)
 };
 
 // Reverse map: female ID → male ID
