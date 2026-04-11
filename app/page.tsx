@@ -162,18 +162,34 @@ export default function SpinPage() {
   useEffect(() => {
     if (!dataLoaded) return;
 
+    // Method 1: Supabase Realtime (requires Realtime replication enabled on table)
     const unsub = subscribeTournamentData((key, data) => {
       if (key === "pairs") {
         const remotePairs = (data as Pair[]) ?? [];
         const localCount = localPairCountRef.current;
-        // Show overlay if remote count differs from local (someone else spun or reset)
         if (remotePairs.length !== localCount) {
           setHasRemoteUpdate(true);
         }
       }
     });
 
-    return unsub;
+    // Method 2: Polling fallback (every 5s) — works even without Realtime enabled
+    const pollInterval = setInterval(async () => {
+      try {
+        const remotePairs = await fetchPairs();
+        const localCount = localPairCountRef.current;
+        if (remotePairs.length !== localCount) {
+          setHasRemoteUpdate(true);
+        }
+      } catch {
+        // Ignore polling errors
+      }
+    }, 5000);
+
+    return () => {
+      unsub();
+      clearInterval(pollInterval);
+    };
   }, [dataLoaded]);
 
   const handleReloadData = useCallback(async () => {
