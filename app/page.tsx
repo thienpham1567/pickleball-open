@@ -820,14 +820,6 @@ export default function SpinPage() {
               }}
             />
             <div className="text-center px-6">
-              <motion.div
-                initial={{ scale: 0 }}
-                animate={{ scale: 1 }}
-                transition={{ type: "spring", damping: 12, delay: 0.2 }}
-                className="text-7xl sm:text-8xl mb-6"
-              >
-                🏓
-              </motion.div>
 
               <motion.h2
                 initial={{ opacity: 0, y: 20 }}
