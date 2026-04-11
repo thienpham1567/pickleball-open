@@ -460,18 +460,26 @@ export default function SpinningWheel({
       winnerIndex = Math.floor(Math.random() * players.length);
     }
 
+    // Calculate exact target angle where segment center aligns with pointer (top = -π/2)
+    // For segment i to be at top: rotation = -(i * segmentAngle + segmentAngle/2) + 2kπ
     const segmentCenterOffset = winnerIndex * segmentAngle + segmentAngle / 2;
-    const fullSpins = (6 + Math.floor(Math.random() * 4)) * 2 * Math.PI;
-    // Smaller jitter to prevent crossing segment boundaries
-    const jitter = (Math.random() * 0.4 - 0.2) * segmentAngle * 0.3;
-    const targetRotation = rotationRef.current + fullSpins - segmentCenterOffset + jitter;
+    const targetAngle = -segmentCenterOffset;
+
+    // Add enough full rotations so wheel spins forward 6-9 times past current position
+    const extraSpins = 6 + Math.floor(Math.random() * 4);
+    const minK = Math.ceil((rotationRef.current - targetAngle) / (2 * Math.PI));
+    const targetRotation = targetAngle + (minK + extraSpins) * 2 * Math.PI;
+
+    // Small jitter for natural feel (won't cross segment boundary)
+    const jitter = (Math.random() * 0.4 - 0.2) * segmentAngle * 0.2;
 
     const startRotation = rotationRef.current;
-    const totalRotation = targetRotation - startRotation;
+    const finalTarget = targetRotation + jitter;
+    const totalRotation = finalTarget - startRotation;
     const duration = 4500 + Math.random() * 2000;
     const startTime = performance.now();
 
-    // Store the predetermined winner so we use it directly (not re-derive from angle)
+    // Store the predetermined winner so we use it directly
     const predeterminedWinner = players[winnerIndex];
 
     let lastSegment = -1;
