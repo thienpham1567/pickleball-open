@@ -94,7 +94,7 @@ export const femalePlayers: Player[] = [
   {
     id: "c-me",
     name: "Thiên",
-    displayName: "c Thiên",
+    displayName: "Thiên",
     image: "/hinhmn/c-me.jpg",
     gender: "female",
   },

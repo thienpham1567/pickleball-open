@@ -446,16 +446,16 @@ export default function BracketPage() {
                         transition={{ delay: i * 0.06 }}
                         className="glass-card rounded-xl p-3 flex items-center gap-2.5"
                       >
-                        <span className="text-[10px] font-bold w-5 text-center" style={{ color: "var(--text-muted)" }}>{team.seed}</span>
-                        <div className="flex -space-x-1.5">
-                          <div className="relative w-8 h-8 rounded-full overflow-hidden ring-2 ring-blue-300">
+                        <span className="text-xs font-bold w-6 text-center" style={{ color: "var(--text-muted)" }}>{team.seed}</span>
+                        <div className="flex -space-x-2">
+                          <div className="relative w-10 h-10 rounded-full overflow-hidden ring-2 ring-blue-300">
                             <Image src={team.pair.male.image} alt="" fill className="object-cover" />
                           </div>
-                          <div className="relative w-8 h-8 rounded-full overflow-hidden ring-2 ring-pink-300">
+                          <div className="relative w-10 h-10 rounded-full overflow-hidden ring-2 ring-pink-300">
                             <Image src={team.pair.female.image} alt="" fill className="object-cover" />
                           </div>
                         </div>
-                        <span className="text-xs font-semibold truncate" style={{ color: "var(--text-primary)" }}>{team.name}</span>
+                        <span className="text-sm font-semibold truncate" style={{ color: "var(--text-primary)" }}>{team.name}</span>
                       </motion.div>
                     ))}
                   </div>
@@ -621,12 +621,12 @@ function GroupCard({ group, groupIndex, standings, teamBySeed, updateScore }: {
   return (
     <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: groupIndex * 0.15 }} className="glass-card rounded-2xl overflow-hidden">
       {/* Header */}
-      <div className="px-4 py-2.5 text-center font-black text-sm tracking-[0.2em] uppercase" style={{ background: "var(--bg-hover)", color: "var(--text-primary)", borderBottom: "1px solid var(--border-subtle)" }}>
+      <div className="px-4 py-3 text-center font-black text-base sm:text-lg tracking-[0.2em] uppercase" style={{ background: "var(--bg-hover)", color: "var(--text-primary)", borderBottom: "1px solid var(--border-subtle)" }}>
         BẢNG {group.name}
       </div>
 
       {/* Matches */}
-      <div className="p-3 space-y-2">
+      <div className="p-3 sm:p-4 space-y-2.5">
         {group.matches.map((match, mi) => {
           const t1 = teamBySeed(match.team1Seed);
           const t2 = teamBySeed(match.team2Seed);
@@ -647,45 +647,45 @@ function GroupCard({ group, groupIndex, standings, teamBySeed, updateScore }: {
       </div>
 
       {/* Standings table */}
-      <div className="px-3 pb-3">
-        <table className="w-full text-[10px] sm:text-xs" style={{ color: "var(--text-secondary)" }}>
+      <div className="px-3 sm:px-4 pb-3 sm:pb-4">
+        <table className="w-full text-xs sm:text-sm" style={{ color: "var(--text-secondary)" }}>
           <thead>
             <tr className="border-b" style={{ borderColor: "var(--border-subtle)" }}>
-              <th className="text-left py-1.5 pl-2">#</th>
-              <th className="text-left py-1.5">Đội</th>
-              <th className="text-center py-1.5 w-6">T</th>
-              <th className="text-center py-1.5 w-6">W</th>
-              <th className="text-center py-1.5 w-6">L</th>
-              <th className="text-center py-1.5 w-10">+/-</th>
+              <th className="text-left py-2 pl-2">#</th>
+              <th className="text-left py-2">Đội</th>
+              <th className="text-center py-2 w-7">T</th>
+              <th className="text-center py-2 w-7">W</th>
+              <th className="text-center py-2 w-7">L</th>
+              <th className="text-center py-2 w-10">+/-</th>
             </tr>
           </thead>
           <tbody>
             {standings.map((st, rank) => (
               <tr key={st.team.seed} className={`border-b transition-all ${rank < 2 ? "bg-emerald-500/5" : ""}`} style={{ borderColor: "var(--border-subtle)" }}>
-                <td className="py-1.5 pl-2 font-bold">
+                <td className="py-2 pl-2 font-bold">
                   {rank < 2 ? (
                     <span className="text-emerald-500">{rank + 1}</span>
                   ) : (
                     <span style={{ color: "var(--text-muted)" }}>{rank + 1}</span>
                   )}
                 </td>
-                <td className="py-1.5">
-                  <div className="flex items-center gap-1.5">
-                    <div className="flex -space-x-1">
-                      <div className="relative w-5 h-5 rounded-full overflow-hidden ring-1 ring-blue-300">
+                <td className="py-2">
+                  <div className="flex items-center gap-2">
+                    <div className="flex -space-x-1.5">
+                      <div className="relative w-7 h-7 rounded-full overflow-hidden ring-1 ring-blue-300">
                         <Image src={st.team.pair.male.image} alt="" fill className="object-cover" />
                       </div>
-                      <div className="relative w-5 h-5 rounded-full overflow-hidden ring-1 ring-pink-300">
+                      <div className="relative w-7 h-7 rounded-full overflow-hidden ring-1 ring-pink-300">
                         <Image src={st.team.pair.female.image} alt="" fill className="object-cover" />
                       </div>
                     </div>
-                    <span className="truncate font-medium" style={{ color: "var(--text-primary)", maxWidth: "100px" }}>{st.team.name}</span>
+                    <span className="truncate font-medium" style={{ color: "var(--text-primary)", maxWidth: "120px" }}>{st.team.name}</span>
                   </div>
                 </td>
-                <td className="text-center py-1.5">{st.played}</td>
-                <td className="text-center py-1.5 font-bold text-emerald-500">{st.won}</td>
-                <td className="text-center py-1.5">{st.lost}</td>
-                <td className="text-center py-1.5 font-mono font-bold" style={{ color: st.diff > 0 ? "#10b981" : st.diff < 0 ? "#ef4444" : "var(--text-muted)" }}>
+                <td className="text-center py-2">{st.played}</td>
+                <td className="text-center py-2 font-bold text-emerald-500">{st.won}</td>
+                <td className="text-center py-2">{st.lost}</td>
+                <td className="text-center py-2 font-mono font-bold" style={{ color: st.diff > 0 ? "#10b981" : st.diff < 0 ? "#ef4444" : "var(--text-muted)" }}>
                   {st.diff > 0 ? `+${st.diff}` : st.diff}
                 </td>
               </tr>
@@ -704,18 +704,18 @@ function GroupMatchRow({ team, score, isWinner, onScoreChange }: {
   isWinner: boolean;
   onScoreChange: (val: string) => void;
 }) {
-  if (!team) return <div className="px-3 py-2.5 opacity-30 text-xs" style={{ color: "var(--text-muted)" }}>—</div>;
+  if (!team) return <div className="px-3 py-3 opacity-30 text-sm" style={{ color: "var(--text-muted)" }}>—</div>;
   return (
-    <div className={`flex items-center gap-2 px-3 py-2 transition-all ${isWinner ? "bg-emerald-500/10" : ""}`}>
-      <div className="flex -space-x-1">
-        <div className="relative w-6 h-6 rounded-full overflow-hidden ring-1 ring-blue-300">
+    <div className={`flex items-center gap-2.5 px-3 sm:px-4 py-2.5 sm:py-3 transition-all ${isWinner ? "bg-emerald-500/10" : ""}`}>
+      <div className="flex -space-x-1.5">
+        <div className="relative w-8 h-8 sm:w-9 sm:h-9 rounded-full overflow-hidden ring-2 ring-blue-300">
           <Image src={team.pair.male.image} alt="" fill className="object-cover" />
         </div>
-        <div className="relative w-6 h-6 rounded-full overflow-hidden ring-1 ring-pink-300">
+        <div className="relative w-8 h-8 sm:w-9 sm:h-9 rounded-full overflow-hidden ring-2 ring-pink-300">
           <Image src={team.pair.female.image} alt="" fill className="object-cover" />
         </div>
       </div>
-      <span className="text-[11px] font-semibold flex-1 truncate" style={{ color: "var(--text-primary)" }}>{team.name}</span>
+      <span className="text-xs sm:text-sm font-semibold flex-1 truncate" style={{ color: "var(--text-primary)" }}>{team.name}</span>
       <input
         type="text"
         inputMode="numeric"
@@ -723,10 +723,10 @@ function GroupMatchRow({ team, score, isWinner, onScoreChange }: {
         placeholder="-"
         maxLength={2}
         onChange={(e) => onScoreChange(e.target.value.replace(/\D/g, ""))}
-        className="w-9 text-center text-xs font-bold rounded-md py-1 outline-none transition-all"
+        className="w-10 sm:w-11 text-center text-sm font-bold rounded-md py-1.5 outline-none transition-all"
         style={{ color: "var(--gold-dark)", background: "var(--bg-hover)", border: "1px solid var(--border-subtle)" }}
       />
-      {isWinner && <motion.span initial={{ scale: 0 }} animate={{ scale: 1 }} className="text-emerald-500 font-bold text-xs">✓</motion.span>}
+      {isWinner && <motion.span initial={{ scale: 0 }} animate={{ scale: 1 }} className="text-emerald-500 font-bold text-sm">✓</motion.span>}
     </div>
   );
 }
