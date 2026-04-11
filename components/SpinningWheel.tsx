@@ -438,6 +438,10 @@ export default function SpinningWheel({
     render(rotationRef.current);
   }, [players, render]);
 
+  // Keep targetPlayerId in a ref so the spinning closure always reads the latest value
+  const targetPlayerIdRef = useRef<string | undefined>(targetPlayerId);
+  useEffect(() => { targetPlayerIdRef.current = targetPlayerId; }, [targetPlayerId]);
+
   // Handle spinning
   useEffect(() => {
     if (!spinning || players.length === 0) return;
@@ -445,23 +449,30 @@ export default function SpinningWheel({
     hasSpun.current = true;
 
     const segmentAngle = (2 * Math.PI) / players.length;
-    // Use predetermined target if provided, otherwise random
+    const currentTarget = targetPlayerIdRef.current;
+
+    // Determine winner index
     let winnerIndex: number;
-    if (targetPlayerId) {
-      const targetIdx = players.findIndex(p => p.id === targetPlayerId);
+    if (currentTarget) {
+      const targetIdx = players.findIndex(p => p.id === currentTarget);
       winnerIndex = targetIdx >= 0 ? targetIdx : Math.floor(Math.random() * players.length);
     } else {
       winnerIndex = Math.floor(Math.random() * players.length);
     }
+
     const segmentCenterOffset = winnerIndex * segmentAngle + segmentAngle / 2;
     const fullSpins = (6 + Math.floor(Math.random() * 4)) * 2 * Math.PI;
-    const jitter = (Math.random() * 0.5 - 0.25) * segmentAngle * 0.5;
+    // Smaller jitter to prevent crossing segment boundaries
+    const jitter = (Math.random() * 0.4 - 0.2) * segmentAngle * 0.3;
     const targetRotation = rotationRef.current + fullSpins - segmentCenterOffset + jitter;
 
     const startRotation = rotationRef.current;
     const totalRotation = targetRotation - startRotation;
     const duration = 4500 + Math.random() * 2000;
     const startTime = performance.now();
+
+    // Store the predetermined winner so we use it directly (not re-derive from angle)
+    const predeterminedWinner = players[winnerIndex];
 
     let lastSegment = -1;
 
@@ -487,12 +498,9 @@ export default function SpinningWheel({
       if (progress < 1) {
         animFrameRef.current = requestAnimationFrame(animate);
       } else {
-        // Determine winner from ACTUAL final rotation (visual = logic)
-        const finalRot = rotationRef.current;
-        const normalizedAngle = (((-finalRot % (2 * Math.PI)) + 2 * Math.PI) % (2 * Math.PI));
-        const actualWinnerIndex = Math.floor(normalizedAngle / segmentAngle) % players.length;
         playWin();
-        onSpinEnd?.(players[actualWinnerIndex]);
+        // Use predetermined winner directly (guaranteed correct)
+        onSpinEnd?.(predeterminedWinner);
       }
     };
 
