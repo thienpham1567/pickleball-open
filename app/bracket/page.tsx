@@ -81,49 +81,26 @@ export default function BracketPage() {
             fixAllImagePaths(dbBracket);
             setTournament(dbBracket);
           } else {
-            setTournament(createTournament(dbPairs));
-          }
-        } else {
-          const saved = localStorage.getItem("pickleball-pairs");
-          if (saved) {
-            const loadedPairs: Pair[] = JSON.parse(saved);
-            const fixedPairs = fixPairImages(loadedPairs);
-            setPairs(fixedPairs);
-
-            const bracketSaved = localStorage.getItem("pickleball-bracket");
-            if (bracketSaved) {
-              const data: TournamentState = JSON.parse(bracketSaved);
-              fixAllImagePaths(data);
-              setTournament(data);
-            } else {
-              setTournament(createTournament(fixedPairs));
-            }
+            // Create tournament without groups - wait for manual draw
+            setTournament(createTournament(dbPairs, false));
           }
         }
       } catch {
-        const saved = localStorage.getItem("pickleball-pairs");
-        if (saved) {
-          try {
-            const loadedPairs: Pair[] = JSON.parse(saved);
-            const fixedPairs = fixPairImages(loadedPairs);
-            setPairs(fixedPairs);
-            setTournament(createTournament(fixedPairs));
-          } catch {
-            /* ignore */
-          }
-        }
+        console.warn("Failed to load tournament data");
       }
       setDataLoaded(true);
     }
     loadData();
   }, []);
 
-  // Save
+  // Save to Supabase only (no localStorage)
   useEffect(() => {
     if (!dataLoaded || !tournament) return;
-    localStorage.setItem("pickleball-bracket", JSON.stringify(tournament));
     saveBracket(tournament);
   }, [tournament, dataLoaded]);
+
+  // Check if groups have been drawn
+  const groupsDrawn = tournament?.groups?.some((g) => g.teamSeeds.length > 0) ?? false;
 
   // Helpers to find team by seed
   const teamBySeed = useCallback(
@@ -240,6 +217,46 @@ export default function BracketPage() {
     [tournament]
   );
 
+  // Random draw for groups
+  const randomDrawGroups = useCallback(() => {
+    if (!tournament) return;
+    setConfirmAction({
+      title: "🎲 Chia bảng ngẫu nhiên?",
+      message: `${tournament.teams.length} đội sẽ được xáo trộn và chia vào 3 bảng.`,
+      action: () => {
+        const shuffled = [...tournament.teams].sort(() => Math.random() - 0.5);
+        const newT = structuredClone(tournament);
+        const groupNames = ["A", "B", "C"];
+        const groups: Group[] = [];
+
+        for (let g = 0; g < 3; g++) {
+          const groupTeams = shuffled.slice(g * 3, g * 3 + 3);
+          const seeds = groupTeams.map((t) => t.seed);
+          const matches: GroupMatch[] = [];
+
+          for (let i = 0; i < seeds.length; i++) {
+            for (let j = i + 1; j < seeds.length; j++) {
+              matches.push({ id: `g${g}-m${matches.length}`, team1Seed: seeds[i], team2Seed: seeds[j], score1: "", score2: "" });
+            }
+          }
+
+          groups.push({ name: groupNames[g], teamSeeds: seeds, matches });
+        }
+
+        newT.groups = groups;
+        newT.qfDrawn = false;
+        newT.quarterFinals = Array.from({ length: 4 }, (_, i) => ({ id: `qf${i + 1}`, team1: null, team2: null, score1: "", score2: "", winner: null }));
+        newT.semiFinals = Array.from({ length: 2 }, (_, i) => ({ id: `sf${i + 1}`, team1: null, team2: null, score1: "", score2: "", winner: null }));
+        newT.final = { id: "final", team1: null, team2: null, score1: "", score2: "", winner: null };
+        newT.thirdPlace = { id: "third", team1: null, team2: null, score1: "", score2: "", winner: null };
+        newT.champion = null;
+        newT.thirdPlaceWinner = null;
+        setTournament(newT);
+        setConfirmAction(null);
+      },
+    });
+  }, [tournament]);
+
   // Draw QF
   const drawQuarterFinals = useCallback(() => {
     if (!tournament || advancingTeams.length < 8) return;
@@ -338,7 +355,7 @@ export default function BracketPage() {
       title: "🗑️ Reset giải đấu?",
       message: "Xóa toàn bộ kết quả? Hành động này không thể hoàn tác.",
       action: () => {
-        setTournament(createTournament(pairs));
+        setTournament(createTournament(pairs, false));
         setActiveTab("groups");
         setConfirmAction(null);
       },
@@ -408,46 +425,108 @@ export default function BracketPage() {
         <AnimatePresence mode="wait">
           {activeTab === "groups" && (
             <motion.div key="groups" initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 20 }} className="max-w-5xl mx-auto px-3 sm:px-6">
-              {/* Scoring rules */}
-              <div className="text-center mb-6 px-4 py-2.5 rounded-xl glass-card inline-flex mx-auto gap-4 text-[10px] sm:text-xs" style={{ color: "var(--text-muted)" }}>
-                <span>🏓 Chạm <b>11</b> điểm</span>
-                <span>🔄 Đổi sân <b>6</b> điểm</span>
-              </div>
 
-              <div className="grid md:grid-cols-3 gap-6">
-                {tournament.groups.map((group, gi) => (
-                  <GroupCard
-                    key={group.name}
-                    group={group}
-                    groupIndex={gi}
-                    standings={allGroupStandings[gi] || []}
-                    teamBySeed={teamBySeed}
-                    updateScore={updateGroupScore}
-                  />
-                ))}
-              </div>
+              {!groupsDrawn ? (
+                /* Teams list + draw button (before groups are assigned) */
+                <div className="max-w-2xl mx-auto">
+                  <div className="text-center mb-6">
+                    <div className="text-5xl mb-4 opacity-60">🎲</div>
+                    <p className="text-sm sm:text-base" style={{ color: "var(--text-muted)" }}>
+                      Bấm nút bên dưới để chia {tournament.teams.length} đội vào 3 bảng ngẫu nhiên
+                    </p>
+                  </div>
 
-              {/* Draw QF button */}
-              <div className="text-center mt-8">
-                {allGroupsComplete && !tournament.qfDrawn ? (
-                  <motion.button
-                    whileHover={{ scale: 1.05 }}
-                    whileTap={{ scale: 0.95 }}
-                    onClick={drawQuarterFinals}
-                    className="px-8 py-3.5 rounded-full text-sm sm:text-base font-bold bg-gradient-to-r from-amber-500 to-orange-500 text-white shadow-xl shadow-amber-500/30"
-                  >
-                    🎲 Bốc thăm Tứ Kết ({advancingTeams.length} đội)
-                  </motion.button>
-                ) : !allGroupsComplete ? (
-                  <p className="text-xs sm:text-sm" style={{ color: "var(--text-muted)" }}>
-                    Hoàn thành tất cả trận vòng bảng để bốc thăm tứ kết
-                  </p>
-                ) : (
-                  <p className="text-xs sm:text-sm text-emerald-500 font-medium">
-                    ✅ Tứ kết đã được bốc thăm — chuyển sang tab Vòng Loại
-                  </p>
-                )}
-              </div>
+                  {/* Team grid */}
+                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 mb-8">
+                    {tournament.teams.map((team, i) => (
+                      <motion.div
+                        key={team.seed}
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: i * 0.06 }}
+                        className="glass-card rounded-xl p-3 flex items-center gap-2.5"
+                      >
+                        <span className="text-[10px] font-bold w-5 text-center" style={{ color: "var(--text-muted)" }}>{team.seed}</span>
+                        <div className="flex -space-x-1.5">
+                          <div className="relative w-8 h-8 rounded-full overflow-hidden ring-2 ring-blue-300">
+                            <Image src={team.pair.male.image} alt="" fill className="object-cover" />
+                          </div>
+                          <div className="relative w-8 h-8 rounded-full overflow-hidden ring-2 ring-pink-300">
+                            <Image src={team.pair.female.image} alt="" fill className="object-cover" />
+                          </div>
+                        </div>
+                        <span className="text-xs font-semibold truncate" style={{ color: "var(--text-primary)" }}>{team.name}</span>
+                      </motion.div>
+                    ))}
+                  </div>
+
+                  {/* Draw button */}
+                  <div className="text-center">
+                    <motion.button
+                      whileHover={{ scale: 1.05 }}
+                      whileTap={{ scale: 0.95 }}
+                      onClick={randomDrawGroups}
+                      className="px-10 py-4 rounded-full text-base sm:text-lg font-bold bg-gradient-to-r from-blue-500 to-purple-600 text-white shadow-xl shadow-blue-500/30"
+                    >
+                      🎲 Chia bảng ngẫu nhiên
+                    </motion.button>
+                  </div>
+                </div>
+              ) : (
+                /* Groups with matches + standings (after draw) */
+                <>
+                  {/* Scoring rules */}
+                  <div className="text-center mb-6 px-4 py-2.5 rounded-xl glass-card inline-flex mx-auto gap-4 text-[10px] sm:text-xs" style={{ color: "var(--text-muted)" }}>
+                    <span>🏓 Chạm <b>11</b> điểm</span>
+                    <span>🔄 Đổi sân <b>6</b> điểm</span>
+                  </div>
+
+                  <div className="grid md:grid-cols-3 gap-6">
+                    {tournament.groups.map((group, gi) => (
+                      <GroupCard
+                        key={group.name}
+                        group={group}
+                        groupIndex={gi}
+                        standings={allGroupStandings[gi] || []}
+                        teamBySeed={teamBySeed}
+                        updateScore={updateGroupScore}
+                      />
+                    ))}
+                  </div>
+
+                  {/* Chia lại + Draw QF buttons */}
+                  <div className="text-center mt-8 space-y-3">
+                    {allGroupsComplete && !tournament.qfDrawn ? (
+                      <motion.button
+                        whileHover={{ scale: 1.05 }}
+                        whileTap={{ scale: 0.95 }}
+                        onClick={drawQuarterFinals}
+                        className="px-8 py-3.5 rounded-full text-sm sm:text-base font-bold bg-gradient-to-r from-amber-500 to-orange-500 text-white shadow-xl shadow-amber-500/30"
+                      >
+                        🎲 Bốc thăm Tứ Kết ({advancingTeams.length} đội)
+                      </motion.button>
+                    ) : !allGroupsComplete ? (
+                      <p className="text-xs sm:text-sm" style={{ color: "var(--text-muted)" }}>
+                        Hoàn thành tất cả trận vòng bảng để bốc thăm tứ kết
+                      </p>
+                    ) : (
+                      <p className="text-xs sm:text-sm text-emerald-500 font-medium">
+                        ✅ Tứ kết đã được bốc thăm — chuyển sang tab Vòng Loại
+                      </p>
+                    )}
+                    <motion.button
+                      whileHover={{ scale: 1.03 }}
+                      whileTap={{ scale: 0.97 }}
+                      onClick={randomDrawGroups}
+                      className="px-5 py-2 rounded-full text-xs font-semibold glass-card transition-all"
+                      style={{ color: "var(--text-secondary)" }}
+                    >
+                      🔀 Chia lại bảng
+                    </motion.button>
+                  </div>
+                </>
+              )}
+
             </motion.div>
           )}
 
@@ -821,41 +900,33 @@ function getKOLabel(round: "qf" | "sf" | "final" | "third", idx: number) {
 
 /* ======== HELPERS ======== */
 
-function createTournament(pairs: Pair[]): TournamentState {
+function createTournament(pairs: Pair[], withGroups = true): TournamentState {
   const teams: Team[] = pairs.map((pair, i) => ({
     seed: i + 1,
     pair,
     name: getTeamName(pair),
   }));
 
-  // Divide into groups of 3
-  const numGroups = Math.ceil(teams.length / 3);
-  const groupNames = ["A", "B", "C", "D", "E", "F"];
   const groups: Group[] = [];
 
-  for (let g = 0; g < numGroups; g++) {
-    const groupTeams = teams.slice(g * 3, g * 3 + 3);
-    const seeds = groupTeams.map((t) => t.seed);
-    const matches: GroupMatch[] = [];
+  if (withGroups) {
+    // Divide into groups of 3
+    const numGroups = Math.ceil(teams.length / 3);
+    const groupNames = ["A", "B", "C", "D", "E", "F"];
 
-    // Round-robin within group
-    for (let i = 0; i < seeds.length; i++) {
-      for (let j = i + 1; j < seeds.length; j++) {
-        matches.push({
-          id: `g${g}-m${matches.length}`,
-          team1Seed: seeds[i],
-          team2Seed: seeds[j],
-          score1: "",
-          score2: "",
-        });
+    for (let g = 0; g < numGroups; g++) {
+      const groupTeams = teams.slice(g * 3, g * 3 + 3);
+      const seeds = groupTeams.map((t) => t.seed);
+      const matches: GroupMatch[] = [];
+
+      for (let i = 0; i < seeds.length; i++) {
+        for (let j = i + 1; j < seeds.length; j++) {
+          matches.push({ id: `g${g}-m${matches.length}`, team1Seed: seeds[i], team2Seed: seeds[j], score1: "", score2: "" });
+        }
       }
-    }
 
-    groups.push({
-      name: groupNames[g] || `${g + 1}`,
-      teamSeeds: seeds,
-      matches,
-    });
+      groups.push({ name: groupNames[g] || `${g + 1}`, teamSeeds: seeds, matches });
+    }
   }
 
   return {
