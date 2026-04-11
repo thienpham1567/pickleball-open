@@ -824,9 +824,9 @@ export default function SpinPage() {
                 initial={{ scale: 0 }}
                 animate={{ scale: 1 }}
                 transition={{ type: "spring", damping: 12, delay: 0.2 }}
-                className="mb-6"
+                className="text-7xl sm:text-8xl mb-6"
               >
-                <img src="/joola-paddle.png" alt="JOOLA Paddle" className="w-40 sm:w-52 mx-auto drop-shadow-2xl" style={{ filter: "drop-shadow(0 0 30px rgba(59,130,246,0.3))" }} />
+                🏓
               </motion.div>
 
               <motion.h2
