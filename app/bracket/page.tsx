@@ -395,27 +395,17 @@ export default function BracketPage() {
           <div className="flex items-center justify-center gap-4 mb-3 sm:mb-4">
             <div className="h-px w-12 sm:w-20" style={{ background: "linear-gradient(to right, transparent, var(--gold))" }} />
             <span className="text-[10px] sm:text-xs font-bold tracking-[0.35em] uppercase" style={{ color: "var(--gold)", fontFamily: "var(--font-display)" }}>
-              Tournament
+              Pickleball Tân Phú Open
             </span>
             <div className="h-px w-12 sm:w-20" style={{ background: "linear-gradient(to left, transparent, var(--gold))" }} />
           </div>
 
-          <h1 className="text-3xl sm:text-5xl md:text-6xl font-black tracking-tight leading-none">
-            <span className="text-shimmer">PICKLEBALL</span>
+          <h1 className="text-2xl sm:text-4xl md:text-5xl font-black tracking-tight leading-tight">
+            <span className="text-shimmer">MINI GAME</span>
           </h1>
-          <h2 className="text-lg sm:text-2xl md:text-3xl font-extrabold tracking-[0.15em] mt-0.5" style={{ color: "var(--text-secondary)" }}>
-            TÂN PHÚ OPEN
+          <h2 className="text-xl sm:text-3xl md:text-4xl font-black tracking-tight mt-1">
+            <span style={{ background: "linear-gradient(135deg, #3b82f6, #8b5cf6, #ec4899)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>TRAI KHOẺ GÁI XINH</span>
           </h2>
-
-          <div className="flex items-center justify-center gap-2 sm:gap-3 mt-3 sm:mt-4">
-            <span className="inline-flex items-center gap-1.5 px-3 sm:px-4 py-1 sm:py-1.5 rounded-full text-[10px] sm:text-xs font-semibold" style={{ background: "var(--bg-hover)", color: "var(--text-muted)", border: "1px solid var(--border-subtle)" }}>
-              <svg className="w-3 h-3" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg>
-              {tournament.teams.length} đội
-            </span>
-            <span className="inline-flex items-center gap-1.5 px-3 sm:px-4 py-1 sm:py-1.5 rounded-full text-[10px] sm:text-xs font-semibold" style={{ background: "var(--bg-hover)", color: "var(--text-muted)", border: "1px solid var(--border-subtle)" }}>
-              3 bảng &rarr; Tứ kết &rarr; Chung kết
-            </span>
-          </div>
         </motion.section>
 
         {/* ── Tab Selector ── */}
@@ -507,17 +497,7 @@ export default function BracketPage() {
                 <>
                   {/* Scoring rules */}
                   <div className="flex justify-center mb-6 sm:mb-8">
-                    <div className="inline-flex items-center gap-3 sm:gap-5 px-5 py-2.5 rounded-xl text-[10px] sm:text-xs font-medium" style={{ background: "var(--bg-card)", border: "1px solid var(--border-subtle)", color: "var(--text-muted)" }}>
-                      <span className="flex items-center gap-1.5">
-                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
-                        Chạm <b className="font-bold" style={{ color: "var(--text-secondary)" }}>11</b> điểm
-                      </span>
-                      <span className="w-px h-3" style={{ background: "var(--border-subtle)" }} />
-                      <span className="flex items-center gap-1.5">
-                        <span className="w-1.5 h-1.5 rounded-full bg-amber-500" />
-                        Đổi sân <b className="font-bold" style={{ color: "var(--text-secondary)" }}>6</b> điểm
-                      </span>
-                    </div>
+                    {/* Scoring rules hidden */}
                   </div>
 
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-6 items-start">

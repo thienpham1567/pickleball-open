@@ -8,6 +8,7 @@ import confetti from "canvas-confetti";
 import Navbar from "@/components/Navbar";
 import { type Team } from "@/lib/players";
 import { fetchBracket } from "@/lib/supabase-data";
+import { useSearchParams } from "next/navigation";
 
 interface TournamentState {
   teams: Team[];
@@ -22,13 +23,40 @@ interface PodiumTeam {
   rank: 1 | 2 | 3;
 }
 
+const PLACEHOLDER = "/hinhmn/player-placeholder.svg";
+
+function makeDemoTeam(seed: number, maleName: string, femaleName: string): Team {
+  return {
+    seed,
+    name: `${maleName} & ${femaleName}`,
+    pair: {
+      male: { id: `m${seed}`, name: maleName, displayName: maleName, image: PLACEHOLDER, gender: "male" as const },
+      female: { id: `f${seed}`, name: femaleName, displayName: femaleName, image: PLACEHOLDER, gender: "female" as const },
+    },
+  };
+}
+
 export default function PodiumPage() {
+  const searchParams = useSearchParams();
+  const isDemo = searchParams.get("demo") === "true";
+
   const [podium, setPodium] = useState<PodiumTeam[]>([]);
   const [revealed, setRevealed] = useState(false);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     async function load() {
+      if (isDemo) {
+        // Demo mode with placeholder data
+        setPodium([
+          { team: makeDemoTeam(1, "Player A", "Player B"), rank: 1 },
+          { team: makeDemoTeam(2, "Player C", "Player D"), rank: 2 },
+          { team: makeDemoTeam(3, "Player E", "Player F"), rank: 3 },
+        ]);
+        setLoading(false);
+        return;
+      }
+
       try {
         const data = await fetchBracket<TournamentState>();
         if (!data) { setLoading(false); return; }
@@ -58,7 +86,7 @@ export default function PodiumPage() {
       setLoading(false);
     }
     load();
-  }, []);
+  }, [isDemo]);
 
   // Fire confetti when revealed
   useEffect(() => {
