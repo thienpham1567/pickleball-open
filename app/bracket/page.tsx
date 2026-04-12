@@ -393,7 +393,7 @@ export default function BracketPage() {
         >
           <div className="flex items-center justify-center gap-4 mb-3 sm:mb-4">
             <div className="h-px w-12 sm:w-20" style={{ background: "linear-gradient(to right, transparent, var(--gold))" }} />
-            <span className="text-xs sm:text-sm font-bold tracking-[0.35em] uppercase" style={{ color: "var(--gold)", fontFamily: "var(--font-display)" }}>
+            <span className="text-sm sm:text-lg font-bold tracking-[0.35em] uppercase" style={{ color: "var(--gold)", fontFamily: "var(--font-display)" }}>
               MINI GAME
             </span>
             <div className="h-px w-12 sm:w-20" style={{ background: "linear-gradient(to left, transparent, var(--gold))" }} />
