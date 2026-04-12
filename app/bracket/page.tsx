@@ -391,16 +391,7 @@ export default function BracketPage() {
           animate={{ opacity: 1, y: 0 }}
           className="text-center pt-6 sm:pt-10 pb-4 sm:pb-6 px-4 relative"
         >
-          {/* Decorative line */}
-          <div className="flex items-center justify-center gap-4 mb-3 sm:mb-4">
-            <div className="h-px w-12 sm:w-20" style={{ background: "linear-gradient(to right, transparent, var(--gold))" }} />
-            <span className="text-[10px] sm:text-xs font-bold tracking-[0.35em] uppercase" style={{ color: "var(--gold)", fontFamily: "var(--font-display)" }}>
-              Pickleball Tân Phú Open
-            </span>
-            <div className="h-px w-12 sm:w-20" style={{ background: "linear-gradient(to left, transparent, var(--gold))" }} />
-          </div>
-
-          <h1 className="text-2xl sm:text-4xl md:text-5xl font-black tracking-tight leading-tight">
+          <h1 className="text-4xl sm:text-6xl md:text-7xl font-black tracking-tight leading-tight">
             <span className="text-shimmer">MINI GAME</span>
           </h1>
           <h2 className="text-xl sm:text-3xl md:text-4xl font-black tracking-tight mt-1">
