@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import Image from "next/image";
 import Link from "next/link";
@@ -37,6 +37,14 @@ function makeDemoTeam(seed: number, maleName: string, femaleName: string): Team 
 }
 
 export default function PodiumPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen flex items-center justify-center" style={{ background: "var(--bg-primary)" }}><span className="text-4xl">🏓</span></div>}>
+      <PodiumContent />
+    </Suspense>
+  );
+}
+
+function PodiumContent() {
   const searchParams = useSearchParams();
   const isDemo = searchParams.get("demo") === "true";
 
