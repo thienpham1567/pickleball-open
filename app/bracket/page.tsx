@@ -453,7 +453,7 @@ export default function BracketPage() {
         {/* ── Tab Content ── */}
         <AnimatePresence mode="wait">
           {activeTab === "groups" && (
-            <motion.div key="groups" initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -12 }} transition={{ duration: 0.25 }} className="max-w-7xl mx-auto px-3 sm:px-6">
+            <motion.div key="groups" initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -12 }} transition={{ duration: 0.25 }} className="mx-auto px-3 sm:px-6 lg:px-10 xl:px-16">
 
               {!groupsDrawn ? (
                 <div className="max-w-2xl mx-auto">
@@ -520,7 +520,7 @@ export default function BracketPage() {
                     </div>
                   </div>
 
-                  <div className="grid md:grid-cols-3 gap-5 sm:gap-6 items-start" style={{ gridTemplateColumns: "repeat(3, minmax(0, 1fr))" }}>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-6 items-start">
                     {tournament.groups.map((group, gi) => (
                       <GroupCard
                         key={group.name}
@@ -663,8 +663,8 @@ function getTeamAccent(seed: number) {
 
 /* Reusable team avatar pair */
 function TeamAvatars({ male, female, size = "md" }: { male: string; female: string; size?: "sm" | "md" | "lg" }) {
-  const dims = size === "sm" ? "w-9 h-9 sm:w-10 sm:h-10" : size === "lg" ? "w-16 h-16 sm:w-20 sm:h-20" : "w-11 h-11 sm:w-12 sm:h-12";
-  const overlap = size === "sm" ? "-space-x-2" : "-space-x-3";
+  const dims = size === "sm" ? "w-8 h-8 sm:w-10 sm:h-10" : size === "lg" ? "w-14 h-14 sm:w-20 sm:h-20" : "w-9 h-9 sm:w-12 sm:h-12";
+  const overlap = size === "sm" ? "-space-x-1.5 sm:-space-x-2" : "-space-x-2 sm:-space-x-3";
 
   return (
     <div className={`flex ${overlap} shrink-0`}>
@@ -748,10 +748,9 @@ function GroupCard({ group, groupIndex, standings, teamBySeed, updateScore }: {
               <tr style={{ background: "var(--bg-hover)" }}>
                 <th className="text-left py-2.5 pl-3 w-6 font-semibold" style={{ color: "var(--text-muted)" }}>#</th>
                 <th className="text-left py-2.5 font-semibold" style={{ color: "var(--text-muted)" }}>Đội</th>
-                <th className="text-center py-2.5 w-8 font-semibold" style={{ color: "var(--text-muted)" }}>T</th>
-                <th className="text-center py-2.5 w-8 font-semibold" style={{ color: "var(--text-muted)" }}>W</th>
-                <th className="text-center py-2.5 w-8 font-semibold" style={{ color: "var(--text-muted)" }}>L</th>
-                <th className="text-center py-2.5 w-10 pr-3 font-semibold" style={{ color: "var(--text-muted)" }}>+/-</th>
+                <th className="text-center py-2.5 font-semibold" style={{ color: "var(--text-muted)", width: 76 }}>Thắng</th>
+                <th className="text-center py-2.5 font-semibold" style={{ color: "var(--text-muted)", width: 76 }}>Thua</th>
+                <th className="text-center py-2.5 pr-3 font-semibold" style={{ color: "var(--text-muted)", width: 76 }}>HS</th>
               </tr>
             </thead>
             <tbody>
@@ -778,7 +777,6 @@ function GroupCard({ group, groupIndex, standings, teamBySeed, updateScore }: {
                         <span className="font-bold text-sm" style={{ color: "var(--text-primary)" }}>{st.team.name}</span>
                       </div>
                     </td>
-                    <td className="text-center py-2.5">{st.played}</td>
                     <td className="text-center py-2.5 font-bold text-emerald-500">{st.won}</td>
                     <td className="text-center py-2.5" style={{ color: st.lost > 0 ? "#ef4444" : "var(--text-muted)" }}>{st.lost}</td>
                     <td className="text-center py-2.5 pr-3 font-bold" style={{ fontFamily: "var(--font-display)", fontSize: "11px", color: st.diff > 0 ? "#10b981" : st.diff < 0 ? "#ef4444" : "var(--text-muted)" }}>
@@ -806,13 +804,13 @@ function GroupMatchRow({ team, score, isWinner, onScoreChange }: {
   const accent = getTeamAccent(team.seed);
   return (
     <div
-      className="flex items-center gap-2.5 px-3 sm:px-4 py-3 sm:py-3.5 transition-all"
+      className="flex items-center gap-2 sm:gap-2.5 px-2.5 sm:px-4 py-2.5 sm:py-3.5 transition-all"
       style={{ background: isWinner ? "rgba(16,185,129,0.08)" : "transparent" }}
     >
       <div className="w-1 self-stretch rounded-full shrink-0" style={{ background: accent }} />
       <TeamAvatars male={team.pair.male.image} female={team.pair.female.image} size="md" />
-      <span className="text-sm sm:text-base font-bold flex-1" style={{ color: "var(--text-primary)" }}>{team.name}</span>
-      <div className="flex items-center gap-2">
+      <span className="text-xs sm:text-base font-bold flex-1 min-w-0 truncate" style={{ color: "var(--text-primary)" }}>{team.name}</span>
+      <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
         <input
           type="text"
           inputMode="numeric"
@@ -820,7 +818,7 @@ function GroupMatchRow({ team, score, isWinner, onScoreChange }: {
           placeholder="–"
           maxLength={2}
           onChange={(e) => onScoreChange(e.target.value.replace(/\D/g, ""))}
-          className="w-10 sm:w-11 text-center text-sm font-bold rounded-lg py-1.5 outline-none transition-all"
+          className="w-9 sm:w-11 text-center text-xs sm:text-sm font-bold rounded-lg py-1 sm:py-1.5 outline-none transition-all"
           style={{
             color: score ? "var(--text-primary)" : "var(--text-muted)",
             background: "var(--bg-hover)",
@@ -829,8 +827,8 @@ function GroupMatchRow({ team, score, isWinner, onScoreChange }: {
           }}
         />
         {isWinner && (
-          <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} className="w-5 h-5 rounded-full bg-emerald-500 flex items-center justify-center shrink-0">
-            <svg className="w-3 h-3 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={3}><path d="M5 13l4 4L19 7"/></svg>
+          <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} className="w-4 h-4 sm:w-5 sm:h-5 rounded-full bg-emerald-500 flex items-center justify-center shrink-0">
+            <svg className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={3}><path d="M5 13l4 4L19 7"/></svg>
           </motion.div>
         )}
       </div>
