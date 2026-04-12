@@ -71,14 +71,14 @@ export const malePlayers: Player[] = [
     id: "a-phat",
     name: "Phát",
     displayName: "a Phát",
-    image: "/hinhmn/player-placeholder.svg",
+    image: "/hinhmn/a-phat.jpg",
     gender: "male",
   },
   {
     id: "a-the",
     name: "Thế",
     displayName: "a Thế",
-    image: "/hinhmn/player-placeholder.svg",
+    image: "/hinhmn/a-the.jpg",
     gender: "male",
   },
 ];
@@ -137,14 +137,14 @@ export const femalePlayers: Player[] = [
     id: "c-le",
     name: "Lệ",
     displayName: "c Lệ",
-    image: "/hinhmn/player-placeholder.svg",
+    image: "/hinhmn/c-le.jpg",
     gender: "female",
   },
   {
     id: "c-quy",
     name: "Quý",
     displayName: "c Quý",
-    image: "/hinhmn/player-placeholder.svg",
+    image: "/hinhmn/c-quy.jpeg",
     gender: "female",
   },
 ];
