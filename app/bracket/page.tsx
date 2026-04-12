@@ -424,7 +424,7 @@ export default function BracketPage() {
         {/* Tab Content */}
         <AnimatePresence mode="wait">
           {activeTab === "groups" && (
-            <motion.div key="groups" initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 20 }} className="max-w-5xl mx-auto px-3 sm:px-6">
+            <motion.div key="groups" initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 20 }} className="max-w-7xl mx-auto px-3 sm:px-6">
 
               {!groupsDrawn ? (
                 /* Teams list + draw button (before groups are assigned) */
@@ -665,7 +665,7 @@ function GroupCard({ group, groupIndex, standings, teamBySeed, updateScore }: {
                         <Image src={st.team.pair.female.image} alt="" fill className="object-cover" />
                       </div>
                     </div>
-                    <span className="truncate font-medium" style={{ color: "var(--text-primary)", maxWidth: "120px" }}>{st.team.name}</span>
+                    <span className="truncate font-medium" style={{ color: "var(--text-primary)" }}>{st.team.name}</span>
                   </div>
                 </td>
                 <td className="text-center py-2">{st.played}</td>
