@@ -619,6 +619,15 @@ export default function BracketPage() {
                         <ChampionDisplay team={tournament.thirdPlaceWinner} title="HẠNG 3" rank="third" />
                       </motion.section>
                     )}
+                    {tournament.champion && tournament.thirdPlaceWinner && (
+                      <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.5 }} className="text-center py-4">
+                        <Link href="/podium">
+                          <motion.span whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} className="inline-flex items-center gap-2 px-8 py-3 rounded-full text-sm font-bold bg-gradient-to-r from-amber-500 to-orange-500 text-white shadow-xl shadow-amber-500/25">
+                            🏆 Xem Bục Vinh Danh
+                          </motion.span>
+                        </Link>
+                      </motion.div>
+                    )}
                   </AnimatePresence>
                 </>
               )}
