@@ -818,23 +818,22 @@ function GroupCard({ group, groupIndex, standings, teamBySeed, updateScore, isAd
                 return (
                   <tr
                     key={st.team.seed}
-                    className={`transition-all ${isStar ? "star-team-row" : ""}`}
-                    style={{ borderTop: "1px solid var(--border-subtle)", background: !isStar ? (isQualified ? "rgba(16,185,129,0.06)" : "transparent") : undefined }}
+                    className="transition-all"
+                    style={{ borderTop: "1px solid var(--border-subtle)", background: isQualified ? "rgba(16,185,129,0.06)" : "transparent" }}
                   >
                     <td className="py-2.5 pl-3">
                       <div className="flex items-center gap-1.5">
-                        <div className="w-1.5 h-1.5 rounded-full shrink-0" style={{ background: isStar ? "#d4a843" : accent }} />
-                        <span className={`text-xs font-bold ${isStar ? "star-team-name" : isQualified ? "text-emerald-500" : ""}`} style={!isQualified && !isStar ? { color: "var(--text-muted)" } : undefined}>
+                        <div className="w-1.5 h-1.5 rounded-full shrink-0" style={{ background: accent }} />
+                        <span className={`text-xs font-bold ${isQualified ? "text-emerald-500" : ""}`} style={!isQualified ? { color: "var(--text-muted)" } : undefined}>
                           {rank + 1}
                         </span>
                       </div>
                     </td>
                     <td className="py-2.5">
                       <div className="flex items-center gap-2">
-                        <div className={isStar ? "star-team-badge" : ""}>
-                          <TeamAvatars male={st.team.pair.male.image} female={st.team.pair.female.image} size="sm" />
-                        </div>
-                        <span className={`font-bold text-sm ${isStar ? "star-team-name" : ""}`} style={!isStar ? { color: "var(--text-primary)" } : undefined}>{st.team.name}</span>
+                        <TeamAvatars male={st.team.pair.male.image} female={st.team.pair.female.image} size="sm" />
+                        <span className="font-bold text-sm" style={{ color: "var(--text-primary)" }}>{st.team.name}</span>
+                        {isStar && <span className="text-[10px]" title="Đội hạt giống">⭐</span>}
                       </div>
                     </td>
                     <td className="text-center py-2.5 font-bold text-emerald-500">{st.won}</td>
