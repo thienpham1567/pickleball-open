@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useEffect, useCallback, useMemo } from "react";
+import { useState, useEffect, useCallback, useMemo, Suspense } from "react";
+import { useSearchParams } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import Image from "next/image";
 import Link from "next/link";
@@ -62,6 +63,27 @@ type TabId = "groups" | "knockout";
 /* ======== PAGE ======== */
 
 export default function BracketPage() {
+  return (
+    <Suspense fallback={
+      <>
+        <Navbar />
+        <main className="pt-20 min-h-screen flex items-center justify-center">
+          <div className="text-center space-y-4">
+            <div className="text-4xl animate-pulse">🏆</div>
+            <p style={{ color: "var(--text-muted)" }}>Đang tải...</p>
+          </div>
+        </main>
+      </>
+    }>
+      <BracketContent />
+    </Suspense>
+  );
+}
+
+function BracketContent() {
+  const searchParams = useSearchParams();
+  const isAdmin = searchParams.get("admin") === "true";
+
   const [pairs, setPairs] = useState<Pair[]>([]);
   const [tournament, setTournament] = useState<TournamentState | null>(null);
   const [dataLoaded, setDataLoaded] = useState(false);
@@ -92,11 +114,11 @@ export default function BracketPage() {
     loadData();
   }, []);
 
-  // Save to Supabase only (no localStorage)
+  // Save to Supabase only (no localStorage) — admin only
   useEffect(() => {
-    if (!dataLoaded || !tournament) return;
+    if (!isAdmin || !dataLoaded || !tournament) return;
     saveBracket(tournament);
-  }, [tournament, dataLoaded]);
+  }, [tournament, dataLoaded, isAdmin]);
 
   // Check if groups have been drawn
   const groupsDrawn = tournament?.groups?.some((g) => g.teamSeeds.length > 0) ?? false;
@@ -474,20 +496,22 @@ export default function BracketPage() {
                     })}
                   </div>
 
-                  <div className="text-center">
-                    <motion.button
-                      whileHover={{ scale: 1.04 }}
-                      whileTap={{ scale: 0.96 }}
-                      onClick={randomDrawGroups}
-                      className="group relative px-10 py-4 rounded-xl text-sm sm:text-base font-bold text-white shadow-xl overflow-hidden"
-                      style={{ background: "linear-gradient(135deg, var(--gold-dark), var(--gold))", boxShadow: "0 8px 32px rgba(212, 168, 67, 0.3)" }}
-                    >
-                      <span className="relative z-10 flex items-center gap-2">
-                        <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}><path d="M19.5 12c0-1.232-.046-2.453-.138-3.662a4.006 4.006 0 0 0-3.7-3.7 48.678 48.678 0 0 0-7.324 0 4.006 4.006 0 0 0-3.7 3.7c-.017.22-.032.441-.046.662M19.5 12l3-3m-3 3-3-3m-12 3c0 1.232.046 2.453.138 3.662a4.006 4.006 0 0 0 3.7 3.7 48.656 48.656 0 0 0 7.324 0 4.006 4.006 0 0 0 3.7-3.7c.017-.22.032-.441.046-.662M4.5 12l3 3m-3-3-3 3"/></svg>
-                        Chia bảng ngẫu nhiên
-                      </span>
-                    </motion.button>
-                  </div>
+                  {isAdmin && (
+                    <div className="text-center">
+                      <motion.button
+                        whileHover={{ scale: 1.04 }}
+                        whileTap={{ scale: 0.96 }}
+                        onClick={randomDrawGroups}
+                        className="group relative px-10 py-4 rounded-xl text-sm sm:text-base font-bold text-white shadow-xl overflow-hidden"
+                        style={{ background: "linear-gradient(135deg, var(--gold-dark), var(--gold))", boxShadow: "0 8px 32px rgba(212, 168, 67, 0.3)" }}
+                      >
+                        <span className="relative z-10 flex items-center gap-2">
+                          <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}><path d="M19.5 12c0-1.232-.046-2.453-.138-3.662a4.006 4.006 0 0 0-3.7-3.7 48.678 48.678 0 0 0-7.324 0 4.006 4.006 0 0 0-3.7 3.7c-.017.22-.032.441-.046.662M19.5 12l3-3m-3 3-3-3m-12 3c0 1.232.046 2.453.138 3.662a4.006 4.006 0 0 0 3.7 3.7 48.656 48.656 0 0 0 7.324 0 4.006 4.006 0 0 0 3.7-3.7c.017-.22.032-.441.046-.662M4.5 12l3 3m-3-3-3 3"/></svg>
+                          Chia bảng ngẫu nhiên
+                        </span>
+                      </motion.button>
+                    </div>
+                  )}
                 </div>
               ) : (
                 <>
@@ -505,13 +529,14 @@ export default function BracketPage() {
                         standings={allGroupStandings[gi] || []}
                         teamBySeed={teamBySeed}
                         updateScore={updateGroupScore}
+                        isAdmin={isAdmin}
                       />
                     ))}
                   </div>
 
                   {/* Chia lại + Draw QF buttons */}
                   <div className="text-center mt-8 sm:mt-10">
-                    {allGroupsComplete && !tournament.qfDrawn ? (
+                    {allGroupsComplete && !tournament.qfDrawn && isAdmin ? (
                       <motion.button
                         whileHover={{ scale: 1.04 }}
                         whileTap={{ scale: 0.96 }}
@@ -563,22 +588,22 @@ export default function BracketPage() {
                 <>
                   {/* Mobile: stacked */}
                   <div className="lg:hidden space-y-8">
-                    <KnockoutRoundMobile title="TỨ KẾT" subtitle="Chạm 11 — Đổi sân 6" matches={tournament.quarterFinals} round="qf" selectWinner={selectWinner} updateScore={updateKOScore} />
-                    <KnockoutRoundMobile title="BÁN KẾT" subtitle="Chạm 13 — Đổi sân 6" matches={tournament.semiFinals} round="sf" selectWinner={selectWinner} updateScore={updateKOScore} />
-                    <KnockoutRoundMobile title="CHUNG KẾT" subtitle="Chạm 15 — Đổi sân 8 — Cách 2 (max 19)" matches={[tournament.final]} round="final" selectWinner={selectWinner} updateScore={updateKOScore} isHighlight />
-                    <KnockoutRoundMobile title="TRANH HẠNG 3" subtitle="Chạm 11 — Đổi sân 6" matches={[tournament.thirdPlace]} round="third" selectWinner={selectWinner} updateScore={updateKOScore} />
+                    <KnockoutRoundMobile title="TỨ KẾT" subtitle="Chạm 11 — Đổi sân 6" matches={tournament.quarterFinals} round="qf" selectWinner={selectWinner} updateScore={updateKOScore} isAdmin={isAdmin} />
+                    <KnockoutRoundMobile title="BÁN KẾT" subtitle="Chạm 13 — Đổi sân 6" matches={tournament.semiFinals} round="sf" selectWinner={selectWinner} updateScore={updateKOScore} isAdmin={isAdmin} />
+                    <KnockoutRoundMobile title="CHUNG KẾT" subtitle="Chạm 15 — Đổi sân 8 — Cách 2 (max 19)" matches={[tournament.final]} round="final" selectWinner={selectWinner} updateScore={updateKOScore} isHighlight isAdmin={isAdmin} />
+                    <KnockoutRoundMobile title="TRANH HẠNG 3" subtitle="Chạm 11 — Đổi sân 6" matches={[tournament.thirdPlace]} round="third" selectWinner={selectWinner} updateScore={updateKOScore} isAdmin={isAdmin} />
                   </div>
 
                   {/* Desktop: horizontal */}
                   <div className="hidden lg:block overflow-x-auto pb-8">
                     <div className="flex items-start gap-0 min-w-max py-6 px-4">
-                      <KnockoutRoundDesktop title="TỨ KẾT" subtitle="Chạm 11" matches={tournament.quarterFinals} round="qf" selectWinner={selectWinner} updateScore={updateKOScore} gap="gap-5" />
+                      <KnockoutRoundDesktop title="TỨ KẾT" subtitle="Chạm 11" matches={tournament.quarterFinals} round="qf" selectWinner={selectWinner} updateScore={updateKOScore} gap="gap-5" isAdmin={isAdmin} />
                       <BracketConnector lines={4} spacing={145} />
-                      <KnockoutRoundDesktop title="BÁN KẾT" subtitle="Chạm 13" matches={tournament.semiFinals} round="sf" selectWinner={selectWinner} updateScore={updateKOScore} gap="gap-[180px]" />
+                      <KnockoutRoundDesktop title="BÁN KẾT" subtitle="Chạm 13" matches={tournament.semiFinals} round="sf" selectWinner={selectWinner} updateScore={updateKOScore} gap="gap-[180px]" isAdmin={isAdmin} />
                       <BracketConnector lines={2} spacing={260} />
                       <div className="flex flex-col gap-12">
-                        <KnockoutRoundDesktop title="CHUNG KẾT" subtitle="Chạm 15" matches={[tournament.final]} round="final" selectWinner={selectWinner} updateScore={updateKOScore} isHighlight />
-                        <KnockoutRoundDesktop title="TRANH 3" subtitle="Chạm 11" matches={[tournament.thirdPlace]} round="third" selectWinner={selectWinner} updateScore={updateKOScore} />
+                        <KnockoutRoundDesktop title="CHUNG KẾT" subtitle="Chạm 15" matches={[tournament.final]} round="final" selectWinner={selectWinner} updateScore={updateKOScore} isHighlight isAdmin={isAdmin} />
+                        <KnockoutRoundDesktop title="TRANH 3" subtitle="Chạm 11" matches={[tournament.thirdPlace]} round="third" selectWinner={selectWinner} updateScore={updateKOScore} isAdmin={isAdmin} />
                       </div>
                     </div>
                   </div>
@@ -664,12 +689,13 @@ function TeamAvatars({ male, female, size = "md" }: { male: string; female: stri
 }
 
 /* Group card with matches + standings */
-function GroupCard({ group, groupIndex, standings, teamBySeed, updateScore }: {
+function GroupCard({ group, groupIndex, standings, teamBySeed, updateScore, isAdmin }: {
   group: Group;
   groupIndex: number;
   standings: Standing[];
   teamBySeed: (seed: number) => Team | null;
   updateScore: (gi: number, mi: number, slot: 1 | 2, val: string) => void;
+  isAdmin: boolean;
 }) {
   const groupColors = [
     { accent: "#3b82f6", bg: "rgba(59,130,246,0.06)", border: "rgba(59,130,246,0.15)" },
@@ -714,9 +740,9 @@ function GroupCard({ group, groupIndex, standings, teamBySeed, updateScore }: {
 
           return (
             <div key={match.id} className="rounded-xl overflow-hidden" style={{ border: "1px solid var(--border-subtle)" }}>
-              <GroupMatchRow team={t1} score={match.score1} isWinner={t1Won} onScoreChange={(v) => updateScore(groupIndex, mi, 1, v)} />
+              <GroupMatchRow team={t1} score={match.score1} isWinner={t1Won} onScoreChange={(v) => updateScore(groupIndex, mi, 1, v)} isAdmin={isAdmin} />
               <div className="h-px" style={{ background: "var(--border-subtle)" }} />
-              <GroupMatchRow team={t2} score={match.score2} isWinner={t2Won} onScoreChange={(v) => updateScore(groupIndex, mi, 2, v)} />
+              <GroupMatchRow team={t2} score={match.score2} isWinner={t2Won} onScoreChange={(v) => updateScore(groupIndex, mi, 2, v)} isAdmin={isAdmin} />
             </div>
           );
         })}
@@ -779,11 +805,12 @@ function GroupCard({ group, groupIndex, standings, teamBySeed, updateScore }: {
 }
 
 /* Group match row */
-function GroupMatchRow({ team, score, isWinner, onScoreChange }: {
+function GroupMatchRow({ team, score, isWinner, onScoreChange, isAdmin }: {
   team: Team | null;
   score: string;
   isWinner: boolean;
   onScoreChange: (val: string) => void;
+  isAdmin: boolean;
 }) {
   if (!team) return <div className="px-3 py-3 opacity-30 text-sm" style={{ color: "var(--text-muted)" }}>—</div>;
   const accent = getTeamAccent(team.seed);
@@ -796,21 +823,35 @@ function GroupMatchRow({ team, score, isWinner, onScoreChange }: {
       <TeamAvatars male={team.pair.male.image} female={team.pair.female.image} size="md" />
       <span className="text-xs sm:text-base font-bold flex-1 min-w-0 truncate" style={{ color: "var(--text-primary)" }}>{team.name}</span>
       <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
-        <input
-          type="text"
-          inputMode="numeric"
-          value={score}
-          placeholder="–"
-          maxLength={2}
-          onChange={(e) => onScoreChange(e.target.value.replace(/\D/g, ""))}
-          className="w-9 sm:w-11 text-center text-xs sm:text-sm font-bold rounded-lg py-1 sm:py-1.5 outline-none transition-all"
-          style={{
-            color: score ? "var(--text-primary)" : "var(--text-muted)",
-            background: "var(--bg-hover)",
-            border: "1px solid var(--border-subtle)",
-            fontFamily: "var(--font-display)",
-          }}
-        />
+        {isAdmin ? (
+          <input
+            type="text"
+            inputMode="numeric"
+            value={score}
+            placeholder="–"
+            maxLength={2}
+            onChange={(e) => onScoreChange(e.target.value.replace(/\D/g, ""))}
+            className="w-9 sm:w-11 text-center text-xs sm:text-sm font-bold rounded-lg py-1 sm:py-1.5 outline-none transition-all"
+            style={{
+              color: score ? "var(--text-primary)" : "var(--text-muted)",
+              background: "var(--bg-hover)",
+              border: "1px solid var(--border-subtle)",
+              fontFamily: "var(--font-display)",
+            }}
+          />
+        ) : (
+          <span
+            className="w-9 sm:w-11 text-center text-xs sm:text-sm font-bold rounded-lg py-1 sm:py-1.5 inline-block"
+            style={{
+              color: score ? "var(--text-primary)" : "var(--text-muted)",
+              background: "var(--bg-hover)",
+              border: "1px solid var(--border-subtle)",
+              fontFamily: "var(--font-display)",
+            }}
+          >
+            {score || "–"}
+          </span>
+        )}
         {isWinner && (
           <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} className="w-4 h-4 sm:w-5 sm:h-5 rounded-full bg-emerald-500 flex items-center justify-center shrink-0">
             <svg className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={3}><path d="M5 13l4 4L19 7"/></svg>
@@ -822,7 +863,7 @@ function GroupMatchRow({ team, score, isWinner, onScoreChange }: {
 }
 
 /* Knockout round - mobile */
-function KnockoutRoundMobile({ title, subtitle, matches, round, selectWinner, updateScore, isHighlight = false }: {
+function KnockoutRoundMobile({ title, subtitle, matches, round, selectWinner, updateScore, isHighlight = false, isAdmin }: {
   title: string;
   subtitle: string;
   matches: KOMatch[];
@@ -830,6 +871,7 @@ function KnockoutRoundMobile({ title, subtitle, matches, round, selectWinner, up
   selectWinner: (round: "qf" | "sf" | "final" | "third", idx: number, slot: 1 | 2) => void;
   updateScore: (round: "qf" | "sf" | "final" | "third", idx: number, slot: 1 | 2, val: string) => void;
   isHighlight?: boolean;
+  isAdmin: boolean;
 }) {
   return (
     <div className="max-w-lg mx-auto">
@@ -851,7 +893,7 @@ function KnockoutRoundMobile({ title, subtitle, matches, round, selectWinner, up
       <p className="text-center text-[10px] mb-3 font-medium" style={{ color: "var(--text-muted)" }}>{subtitle}</p>
       <div className="space-y-3">
         {matches.map((match, idx) => (
-          <KOMatchCard key={match.id} match={match} round={round} matchIndex={idx} selectWinner={selectWinner} updateScore={updateScore} isHighlight={isHighlight} label={getKOLabel(round, idx)} />
+          <KOMatchCard key={match.id} match={match} round={round} matchIndex={idx} selectWinner={selectWinner} updateScore={updateScore} isHighlight={isHighlight} label={getKOLabel(round, idx)} isAdmin={isAdmin} />
         ))}
       </div>
     </div>
@@ -859,7 +901,7 @@ function KnockoutRoundMobile({ title, subtitle, matches, round, selectWinner, up
 }
 
 /* Knockout round - desktop */
-function KnockoutRoundDesktop({ title, subtitle, matches, round, selectWinner, updateScore, gap = "gap-8", isHighlight = false }: {
+function KnockoutRoundDesktop({ title, subtitle, matches, round, selectWinner, updateScore, gap = "gap-8", isHighlight = false, isAdmin }: {
   title: string;
   subtitle: string;
   matches: KOMatch[];
@@ -868,6 +910,7 @@ function KnockoutRoundDesktop({ title, subtitle, matches, round, selectWinner, u
   updateScore: (round: "qf" | "sf" | "final" | "third", idx: number, slot: 1 | 2, val: string) => void;
   gap?: string;
   isHighlight?: boolean;
+  isAdmin: boolean;
 }) {
   return (
     <div className="flex flex-col items-center min-w-[330px]">
@@ -883,7 +926,7 @@ function KnockoutRoundDesktop({ title, subtitle, matches, round, selectWinner, u
       <p className="text-[10px] mb-4 font-medium" style={{ color: "var(--text-muted)" }}>{subtitle}</p>
       <div className={`flex flex-col ${gap} justify-center`}>
         {matches.map((match, idx) => (
-          <KOMatchCard key={match.id} match={match} round={round} matchIndex={idx} selectWinner={selectWinner} updateScore={updateScore} isHighlight={isHighlight} label={getKOLabel(round, idx)} />
+          <KOMatchCard key={match.id} match={match} round={round} matchIndex={idx} selectWinner={selectWinner} updateScore={updateScore} isHighlight={isHighlight} label={getKOLabel(round, idx)} isAdmin={isAdmin} />
         ))}
       </div>
     </div>
@@ -891,7 +934,7 @@ function KnockoutRoundDesktop({ title, subtitle, matches, round, selectWinner, u
 }
 
 /* Knockout match card */
-function KOMatchCard({ match, round, matchIndex, selectWinner, updateScore, isHighlight, label }: {
+function KOMatchCard({ match, round, matchIndex, selectWinner, updateScore, isHighlight, label, isAdmin }: {
   match: KOMatch;
   round: "qf" | "sf" | "final" | "third";
   matchIndex: number;
@@ -899,6 +942,7 @@ function KOMatchCard({ match, round, matchIndex, selectWinner, updateScore, isHi
   updateScore: (round: "qf" | "sf" | "final" | "third", idx: number, slot: 1 | 2, val: string) => void;
   isHighlight: boolean;
   label: string;
+  isAdmin: boolean;
 }) {
   const hasWinner = !!match.winner;
 
@@ -921,21 +965,22 @@ function KOMatchCard({ match, round, matchIndex, selectWinner, updateScore, isHi
         )}
       </div>
       <KOTeamRow team={match.team1} score={match.score1} isWinner={match.winner?.seed === match.team1?.seed}
-        onClick={() => selectWinner(round, matchIndex, 1)} onScoreChange={(v) => updateScore(round, matchIndex, 1, v)} />
+        onClick={() => selectWinner(round, matchIndex, 1)} onScoreChange={(v) => updateScore(round, matchIndex, 1, v)} isAdmin={isAdmin} />
       <div className="h-px mx-3" style={{ background: "var(--border-subtle)" }} />
       <KOTeamRow team={match.team2} score={match.score2} isWinner={match.winner?.seed === match.team2?.seed}
-        onClick={() => selectWinner(round, matchIndex, 2)} onScoreChange={(v) => updateScore(round, matchIndex, 2, v)} />
+        onClick={() => selectWinner(round, matchIndex, 2)} onScoreChange={(v) => updateScore(round, matchIndex, 2, v)} isAdmin={isAdmin} />
     </motion.div>
   );
 }
 
 /* Team row in knockout match */
-function KOTeamRow({ team, score, isWinner, onClick, onScoreChange }: {
+function KOTeamRow({ team, score, isWinner, onClick, onScoreChange, isAdmin }: {
   team: Team | null;
   score: string;
   isWinner: boolean;
   onClick: () => void;
   onScoreChange: (val: string) => void;
+  isAdmin: boolean;
 }) {
   if (!team) {
     return (
@@ -953,10 +998,10 @@ function KOTeamRow({ team, score, isWinner, onClick, onScoreChange }: {
   const accent = getTeamAccent(team.seed);
   return (
     <div
-      className="flex items-center gap-2.5 px-3 py-3 sm:py-3.5 cursor-pointer transition-all group"
+      className={`flex items-center gap-2.5 px-3 py-3 sm:py-3.5 transition-all group ${isAdmin ? "cursor-pointer" : ""}`}
       style={{ background: isWinner ? "rgba(16,185,129,0.08)" : "transparent" }}
-      onClick={onClick}
-      title="Click chọn đội thắng"
+      onClick={isAdmin ? onClick : undefined}
+      title={isAdmin ? "Click chọn đội thắng" : undefined}
     >
       <div className="w-1 self-stretch rounded-full shrink-0" style={{ background: accent }} />
       <TeamAvatars male={team.pair.male.image} female={team.pair.female.image} size="md" />
@@ -964,22 +1009,36 @@ function KOTeamRow({ team, score, isWinner, onClick, onScoreChange }: {
         {team.name}
       </span>
       <div className="flex items-center gap-1.5">
-        <input
-          type="text"
-          inputMode="numeric"
-          value={score}
-          placeholder="–"
-          maxLength={3}
-          onClick={(e) => e.stopPropagation()}
-          onChange={(e) => onScoreChange(e.target.value.replace(/\D/g, ""))}
-          className="w-9 sm:w-10 text-center text-xs font-bold rounded-lg py-1.5 outline-none transition-all"
-          style={{
-            color: score ? "var(--text-primary)" : "var(--text-muted)",
-            background: "var(--bg-hover)",
-            border: "1px solid var(--border-subtle)",
-            fontFamily: "var(--font-display)",
-          }}
-        />
+        {isAdmin ? (
+          <input
+            type="text"
+            inputMode="numeric"
+            value={score}
+            placeholder="–"
+            maxLength={3}
+            onClick={(e) => e.stopPropagation()}
+            onChange={(e) => onScoreChange(e.target.value.replace(/\D/g, ""))}
+            className="w-9 sm:w-10 text-center text-xs font-bold rounded-lg py-1.5 outline-none transition-all"
+            style={{
+              color: score ? "var(--text-primary)" : "var(--text-muted)",
+              background: "var(--bg-hover)",
+              border: "1px solid var(--border-subtle)",
+              fontFamily: "var(--font-display)",
+            }}
+          />
+        ) : (
+          <span
+            className="w-9 sm:w-10 text-center text-xs font-bold rounded-lg py-1.5 inline-block"
+            style={{
+              color: score ? "var(--text-primary)" : "var(--text-muted)",
+              background: "var(--bg-hover)",
+              border: "1px solid var(--border-subtle)",
+              fontFamily: "var(--font-display)",
+            }}
+          >
+            {score || "–"}
+          </span>
+        )}
         {isWinner && (
           <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} className="w-5 h-5 rounded-full bg-emerald-500 flex items-center justify-center shrink-0">
             <svg className="w-3 h-3 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={3}><path d="M5 13l4 4L19 7"/></svg>
