@@ -89,6 +89,7 @@ function BracketContent() {
   const [dataLoaded, setDataLoaded] = useState(false);
   const [activeTab, setActiveTab] = useState<TabId>("groups");
   const [confirmAction, setConfirmAction] = useState<{ title: string; message: string; action: () => void } | null>(null);
+  const [starHighlight, setStarHighlight] = useState(true);
 
   // Load data
   useEffect(() => {
@@ -428,6 +429,37 @@ function BracketContent() {
           <h1 className="text-3xl sm:text-5xl md:text-6xl font-black tracking-tight leading-tight mt-1">
             <span style={{ background: "linear-gradient(135deg, #3b82f6, #8b5cf6, #ec4899)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>TRAI KHOẺ GÁI XINH</span>
           </h1>
+
+          {/* Admin: Star team toggle */}
+          {isAdmin && (
+            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.3 }} className="mt-4">
+              <button
+                onClick={() => setStarHighlight((v) => !v)}
+                className="inline-flex items-center gap-2 px-4 py-2 rounded-full text-xs font-bold transition-all"
+                style={{
+                  background: starHighlight
+                    ? "linear-gradient(135deg, rgba(212,168,67,0.15), rgba(249,115,22,0.1))"
+                    : "var(--bg-hover)",
+                  border: starHighlight
+                    ? "1px solid rgba(212,168,67,0.4)"
+                    : "1px solid var(--border-subtle)",
+                  color: starHighlight ? "var(--gold)" : "var(--text-muted)",
+                }}
+              >
+                <span>{starHighlight ? "⭐" : "☆"}</span>
+                Đội hạt giống
+                <span
+                  className="px-1.5 py-0.5 rounded text-[10px] font-black"
+                  style={{
+                    background: starHighlight ? "rgba(212,168,67,0.2)" : "var(--bg-card)",
+                    color: starHighlight ? "var(--gold)" : "var(--text-muted)",
+                  }}
+                >
+                  {starHighlight ? "ON" : "OFF"}
+                </span>
+              </button>
+            </motion.div>
+          )}
         </motion.section>
 
         {/* ── Tab Selector ── */}
@@ -534,6 +566,7 @@ function BracketContent() {
                         teamBySeed={teamBySeed}
                         updateScore={updateGroupScore}
                         isAdmin={isAdmin}
+                        starHighlight={starHighlight}
                       />
                     ))}
                   </div>
@@ -592,22 +625,22 @@ function BracketContent() {
                 <>
                   {/* Mobile: stacked */}
                   <div className="lg:hidden space-y-8">
-                    <KnockoutRoundMobile title="TỨ KẾT" subtitle="Chạm 11 — Đổi sân 6" matches={tournament.quarterFinals} round="qf" selectWinner={selectWinner} updateScore={updateKOScore} isAdmin={isAdmin} />
-                    <KnockoutRoundMobile title="BÁN KẾT" subtitle="Chạm 13 — Đổi sân 6" matches={tournament.semiFinals} round="sf" selectWinner={selectWinner} updateScore={updateKOScore} isAdmin={isAdmin} />
-                    <KnockoutRoundMobile title="CHUNG KẾT" subtitle="Chạm 15 — Đổi sân 8 — Cách 2 (max 19)" matches={[tournament.final]} round="final" selectWinner={selectWinner} updateScore={updateKOScore} isHighlight isAdmin={isAdmin} />
-                    <KnockoutRoundMobile title="TRANH HẠNG 3" subtitle="Chạm 11 — Đổi sân 6" matches={[tournament.thirdPlace]} round="third" selectWinner={selectWinner} updateScore={updateKOScore} isAdmin={isAdmin} />
+                    <KnockoutRoundMobile title="TỨ KẾT" subtitle="Chạm 11 — Đổi sân 6" matches={tournament.quarterFinals} round="qf" selectWinner={selectWinner} updateScore={updateKOScore} isAdmin={isAdmin} starHighlight={starHighlight} />
+                    <KnockoutRoundMobile title="BÁN KẾT" subtitle="Chạm 13 — Đổi sân 6" matches={tournament.semiFinals} round="sf" selectWinner={selectWinner} updateScore={updateKOScore} isAdmin={isAdmin} starHighlight={starHighlight} />
+                    <KnockoutRoundMobile title="CHUNG KẾT" subtitle="Chạm 15 — Đổi sân 8 — Cách 2 (max 19)" matches={[tournament.final]} round="final" selectWinner={selectWinner} updateScore={updateKOScore} isHighlight isAdmin={isAdmin} starHighlight={starHighlight} />
+                    <KnockoutRoundMobile title="TRANH HẠNG 3" subtitle="Chạm 11 — Đổi sân 6" matches={[tournament.thirdPlace]} round="third" selectWinner={selectWinner} updateScore={updateKOScore} isAdmin={isAdmin} starHighlight={starHighlight} />
                   </div>
 
                   {/* Desktop: horizontal */}
                   <div className="hidden lg:block overflow-x-auto pb-8">
                     <div className="flex items-start gap-0 min-w-max py-6 px-4">
-                      <KnockoutRoundDesktop title="TỨ KẾT" subtitle="Chạm 11" matches={tournament.quarterFinals} round="qf" selectWinner={selectWinner} updateScore={updateKOScore} gap="gap-5" isAdmin={isAdmin} />
+                      <KnockoutRoundDesktop title="TỨ KẾT" subtitle="Chạm 11" matches={tournament.quarterFinals} round="qf" selectWinner={selectWinner} updateScore={updateKOScore} gap="gap-5" isAdmin={isAdmin} starHighlight={starHighlight} />
                       <BracketConnector lines={4} spacing={145} />
-                      <KnockoutRoundDesktop title="BÁN KẾT" subtitle="Chạm 13" matches={tournament.semiFinals} round="sf" selectWinner={selectWinner} updateScore={updateKOScore} gap="gap-[180px]" isAdmin={isAdmin} />
+                      <KnockoutRoundDesktop title="BÁN KẾT" subtitle="Chạm 13" matches={tournament.semiFinals} round="sf" selectWinner={selectWinner} updateScore={updateKOScore} gap="gap-[180px]" isAdmin={isAdmin} starHighlight={starHighlight} />
                       <BracketConnector lines={2} spacing={260} />
                       <div className="flex flex-col gap-12">
-                        <KnockoutRoundDesktop title="CHUNG KẾT" subtitle="Chạm 15" matches={[tournament.final]} round="final" selectWinner={selectWinner} updateScore={updateKOScore} isHighlight isAdmin={isAdmin} />
-                        <KnockoutRoundDesktop title="TRANH 3" subtitle="Chạm 11" matches={[tournament.thirdPlace]} round="third" selectWinner={selectWinner} updateScore={updateKOScore} isAdmin={isAdmin} />
+                        <KnockoutRoundDesktop title="CHUNG KẾT" subtitle="Chạm 15" matches={[tournament.final]} round="final" selectWinner={selectWinner} updateScore={updateKOScore} isHighlight isAdmin={isAdmin} starHighlight={starHighlight} />
+                        <KnockoutRoundDesktop title="TRANH 3" subtitle="Chạm 11" matches={[tournament.thirdPlace]} round="third" selectWinner={selectWinner} updateScore={updateKOScore} isAdmin={isAdmin} starHighlight={starHighlight} />
                       </div>
                     </div>
                   </div>
@@ -675,6 +708,14 @@ function getTeamAccent(seed: number) {
   return TEAM_ACCENT[seed] || "var(--text-muted)";
 }
 
+/* Star team (hạt giống) — a Pháp & c Quỳnh */
+const STAR_MALE_ID = "a-phap";
+const STAR_FEMALE_ID = "c-quynh";
+function isStarTeam(team: Team | null): boolean {
+  if (!team) return false;
+  return team.pair.male.id === STAR_MALE_ID && team.pair.female.id === STAR_FEMALE_ID;
+}
+
 /* Reusable team avatar pair */
 function TeamAvatars({ male, female, size = "md" }: { male: string; female: string; size?: "sm" | "md" | "lg" }) {
   const dims = size === "sm" ? "w-8 h-8 sm:w-10 sm:h-10" : size === "lg" ? "w-14 h-14 sm:w-20 sm:h-20" : "w-9 h-9 sm:w-12 sm:h-12";
@@ -693,13 +734,14 @@ function TeamAvatars({ male, female, size = "md" }: { male: string; female: stri
 }
 
 /* Group card with matches + standings */
-function GroupCard({ group, groupIndex, standings, teamBySeed, updateScore, isAdmin }: {
+function GroupCard({ group, groupIndex, standings, teamBySeed, updateScore, isAdmin, starHighlight }: {
   group: Group;
   groupIndex: number;
   standings: Standing[];
   teamBySeed: (seed: number) => Team | null;
   updateScore: (gi: number, mi: number, slot: 1 | 2, val: string) => void;
   isAdmin: boolean;
+  starHighlight: boolean;
 }) {
   const groupColors = [
     { accent: "#3b82f6", bg: "rgba(59,130,246,0.06)", border: "rgba(59,130,246,0.15)" },
@@ -744,9 +786,9 @@ function GroupCard({ group, groupIndex, standings, teamBySeed, updateScore, isAd
 
           return (
             <div key={match.id} className="rounded-xl overflow-hidden" style={{ border: "1px solid var(--border-subtle)" }}>
-              <GroupMatchRow team={t1} score={match.score1} isWinner={t1Won} onScoreChange={(v) => updateScore(groupIndex, mi, 1, v)} isAdmin={isAdmin} />
+              <GroupMatchRow team={t1} score={match.score1} isWinner={t1Won} onScoreChange={(v) => updateScore(groupIndex, mi, 1, v)} isAdmin={isAdmin} starHighlight={starHighlight} />
               <div className="h-px" style={{ background: "var(--border-subtle)" }} />
-              <GroupMatchRow team={t2} score={match.score2} isWinner={t2Won} onScoreChange={(v) => updateScore(groupIndex, mi, 2, v)} isAdmin={isAdmin} />
+              <GroupMatchRow team={t2} score={match.score2} isWinner={t2Won} onScoreChange={(v) => updateScore(groupIndex, mi, 2, v)} isAdmin={isAdmin} starHighlight={starHighlight} />
             </div>
           );
         })}
@@ -772,24 +814,27 @@ function GroupCard({ group, groupIndex, standings, teamBySeed, updateScore, isAd
               {standings.map((st, rank) => {
                 const isQualified = rank < 2;
                 const accent = getTeamAccent(st.team.seed);
+                const isStar = starHighlight && isStarTeam(st.team);
                 return (
                   <tr
                     key={st.team.seed}
-                    className="transition-all"
-                    style={{ borderTop: "1px solid var(--border-subtle)", background: isQualified ? "rgba(16,185,129,0.06)" : "transparent" }}
+                    className={`transition-all ${isStar ? "star-team-row" : ""}`}
+                    style={{ borderTop: "1px solid var(--border-subtle)", background: !isStar ? (isQualified ? "rgba(16,185,129,0.06)" : "transparent") : undefined }}
                   >
                     <td className="py-2.5 pl-3">
                       <div className="flex items-center gap-1.5">
-                        <div className="w-1.5 h-1.5 rounded-full shrink-0" style={{ background: accent }} />
-                        <span className={`text-xs font-bold ${isQualified ? "text-emerald-500" : ""}`} style={!isQualified ? { color: "var(--text-muted)" } : undefined}>
+                        <div className="w-1.5 h-1.5 rounded-full shrink-0" style={{ background: isStar ? "#d4a843" : accent }} />
+                        <span className={`text-xs font-bold ${isStar ? "star-team-name" : isQualified ? "text-emerald-500" : ""}`} style={!isQualified && !isStar ? { color: "var(--text-muted)" } : undefined}>
                           {rank + 1}
                         </span>
                       </div>
                     </td>
                     <td className="py-2.5">
                       <div className="flex items-center gap-2">
-                        <TeamAvatars male={st.team.pair.male.image} female={st.team.pair.female.image} size="sm" />
-                        <span className="font-bold text-sm" style={{ color: "var(--text-primary)" }}>{st.team.name}</span>
+                        <div className={isStar ? "star-team-badge" : ""}>
+                          <TeamAvatars male={st.team.pair.male.image} female={st.team.pair.female.image} size="sm" />
+                        </div>
+                        <span className={`font-bold text-sm ${isStar ? "star-team-name" : ""}`} style={!isStar ? { color: "var(--text-primary)" } : undefined}>{st.team.name}</span>
                       </div>
                     </td>
                     <td className="text-center py-2.5 font-bold text-emerald-500">{st.won}</td>
@@ -809,23 +854,27 @@ function GroupCard({ group, groupIndex, standings, teamBySeed, updateScore, isAd
 }
 
 /* Group match row */
-function GroupMatchRow({ team, score, isWinner, onScoreChange, isAdmin }: {
+function GroupMatchRow({ team, score, isWinner, onScoreChange, isAdmin, starHighlight }: {
   team: Team | null;
   score: string;
   isWinner: boolean;
   onScoreChange: (val: string) => void;
   isAdmin: boolean;
+  starHighlight: boolean;
 }) {
   if (!team) return <div className="px-3 py-3 opacity-30 text-sm" style={{ color: "var(--text-muted)" }}>—</div>;
   const accent = getTeamAccent(team.seed);
+  const isStar = starHighlight && isStarTeam(team);
   return (
     <div
-      className="flex items-center gap-2 sm:gap-2.5 px-2.5 sm:px-4 py-2.5 sm:py-3.5 transition-all"
-      style={{ background: isWinner ? "rgba(16,185,129,0.08)" : "transparent" }}
+      className={`flex items-center gap-2 sm:gap-2.5 px-2.5 sm:px-4 py-2.5 sm:py-3.5 transition-all ${isStar ? "star-team-row" : ""}`}
+      style={{ background: !isStar ? (isWinner ? "rgba(16,185,129,0.08)" : "transparent") : undefined }}
     >
-      <div className="w-1 self-stretch rounded-full shrink-0" style={{ background: accent }} />
-      <TeamAvatars male={team.pair.male.image} female={team.pair.female.image} size="md" />
-      <span className="text-xs sm:text-base font-bold flex-1 min-w-0 truncate" style={{ color: "var(--text-primary)" }}>{team.name}</span>
+      <div className="w-1 self-stretch rounded-full shrink-0" style={{ background: isStar ? "linear-gradient(180deg, #d4a843, #f97316, #ec4899)" : accent }} />
+      <div className={isStar ? "star-team-badge" : ""}>
+        <TeamAvatars male={team.pair.male.image} female={team.pair.female.image} size="md" />
+      </div>
+      <span className={`text-xs sm:text-base font-bold flex-1 min-w-0 truncate ${isStar ? "star-team-name" : ""}`} style={!isStar ? { color: "var(--text-primary)" } : undefined}>{team.name}</span>
       <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
         {isAdmin ? (
           <input
@@ -867,7 +916,7 @@ function GroupMatchRow({ team, score, isWinner, onScoreChange, isAdmin }: {
 }
 
 /* Knockout round - mobile */
-function KnockoutRoundMobile({ title, subtitle, matches, round, selectWinner, updateScore, isHighlight = false, isAdmin }: {
+function KnockoutRoundMobile({ title, subtitle, matches, round, selectWinner, updateScore, isHighlight = false, isAdmin, starHighlight }: {
   title: string;
   subtitle: string;
   matches: KOMatch[];
@@ -876,6 +925,7 @@ function KnockoutRoundMobile({ title, subtitle, matches, round, selectWinner, up
   updateScore: (round: "qf" | "sf" | "final" | "third", idx: number, slot: 1 | 2, val: string) => void;
   isHighlight?: boolean;
   isAdmin: boolean;
+  starHighlight: boolean;
 }) {
   return (
     <div className="max-w-lg mx-auto">
@@ -897,7 +947,7 @@ function KnockoutRoundMobile({ title, subtitle, matches, round, selectWinner, up
       <p className="text-center text-[10px] mb-3 font-medium" style={{ color: "var(--text-muted)" }}>{subtitle}</p>
       <div className="space-y-3">
         {matches.map((match, idx) => (
-          <KOMatchCard key={match.id} match={match} round={round} matchIndex={idx} selectWinner={selectWinner} updateScore={updateScore} isHighlight={isHighlight} label={getKOLabel(round, idx)} isAdmin={isAdmin} />
+          <KOMatchCard key={match.id} match={match} round={round} matchIndex={idx} selectWinner={selectWinner} updateScore={updateScore} isHighlight={isHighlight} label={getKOLabel(round, idx)} isAdmin={isAdmin} starHighlight={starHighlight} />
         ))}
       </div>
     </div>
@@ -905,7 +955,7 @@ function KnockoutRoundMobile({ title, subtitle, matches, round, selectWinner, up
 }
 
 /* Knockout round - desktop */
-function KnockoutRoundDesktop({ title, subtitle, matches, round, selectWinner, updateScore, gap = "gap-8", isHighlight = false, isAdmin }: {
+function KnockoutRoundDesktop({ title, subtitle, matches, round, selectWinner, updateScore, gap = "gap-8", isHighlight = false, isAdmin, starHighlight }: {
   title: string;
   subtitle: string;
   matches: KOMatch[];
@@ -915,6 +965,7 @@ function KnockoutRoundDesktop({ title, subtitle, matches, round, selectWinner, u
   gap?: string;
   isHighlight?: boolean;
   isAdmin: boolean;
+  starHighlight: boolean;
 }) {
   return (
     <div className="flex flex-col items-center min-w-[330px]">
@@ -930,7 +981,7 @@ function KnockoutRoundDesktop({ title, subtitle, matches, round, selectWinner, u
       <p className="text-[10px] mb-4 font-medium" style={{ color: "var(--text-muted)" }}>{subtitle}</p>
       <div className={`flex flex-col ${gap} justify-center`}>
         {matches.map((match, idx) => (
-          <KOMatchCard key={match.id} match={match} round={round} matchIndex={idx} selectWinner={selectWinner} updateScore={updateScore} isHighlight={isHighlight} label={getKOLabel(round, idx)} isAdmin={isAdmin} />
+          <KOMatchCard key={match.id} match={match} round={round} matchIndex={idx} selectWinner={selectWinner} updateScore={updateScore} isHighlight={isHighlight} label={getKOLabel(round, idx)} isAdmin={isAdmin} starHighlight={starHighlight} />
         ))}
       </div>
     </div>
@@ -938,7 +989,7 @@ function KnockoutRoundDesktop({ title, subtitle, matches, round, selectWinner, u
 }
 
 /* Knockout match card */
-function KOMatchCard({ match, round, matchIndex, selectWinner, updateScore, isHighlight, label, isAdmin }: {
+function KOMatchCard({ match, round, matchIndex, selectWinner, updateScore, isHighlight, label, isAdmin, starHighlight }: {
   match: KOMatch;
   round: "qf" | "sf" | "final" | "third";
   matchIndex: number;
@@ -947,6 +998,7 @@ function KOMatchCard({ match, round, matchIndex, selectWinner, updateScore, isHi
   isHighlight: boolean;
   label: string;
   isAdmin: boolean;
+  starHighlight: boolean;
 }) {
   const hasWinner = !!match.winner;
 
@@ -969,22 +1021,23 @@ function KOMatchCard({ match, round, matchIndex, selectWinner, updateScore, isHi
         )}
       </div>
       <KOTeamRow team={match.team1} score={match.score1} isWinner={match.winner?.seed === match.team1?.seed}
-        onClick={() => selectWinner(round, matchIndex, 1)} onScoreChange={(v) => updateScore(round, matchIndex, 1, v)} isAdmin={isAdmin} />
+        onClick={() => selectWinner(round, matchIndex, 1)} onScoreChange={(v) => updateScore(round, matchIndex, 1, v)} isAdmin={isAdmin} starHighlight={starHighlight} />
       <div className="h-px mx-3" style={{ background: "var(--border-subtle)" }} />
       <KOTeamRow team={match.team2} score={match.score2} isWinner={match.winner?.seed === match.team2?.seed}
-        onClick={() => selectWinner(round, matchIndex, 2)} onScoreChange={(v) => updateScore(round, matchIndex, 2, v)} isAdmin={isAdmin} />
+        onClick={() => selectWinner(round, matchIndex, 2)} onScoreChange={(v) => updateScore(round, matchIndex, 2, v)} isAdmin={isAdmin} starHighlight={starHighlight} />
     </motion.div>
   );
 }
 
 /* Team row in knockout match */
-function KOTeamRow({ team, score, isWinner, onClick, onScoreChange, isAdmin }: {
+function KOTeamRow({ team, score, isWinner, onClick, onScoreChange, isAdmin, starHighlight }: {
   team: Team | null;
   score: string;
   isWinner: boolean;
   onClick: () => void;
   onScoreChange: (val: string) => void;
   isAdmin: boolean;
+  starHighlight: boolean;
 }) {
   if (!team) {
     return (
@@ -1000,16 +1053,19 @@ function KOTeamRow({ team, score, isWinner, onClick, onScoreChange, isAdmin }: {
   }
 
   const accent = getTeamAccent(team.seed);
+  const isStar = starHighlight && isStarTeam(team);
   return (
     <div
-      className={`flex items-center gap-2.5 px-3 py-3 sm:py-3.5 transition-all group ${isAdmin ? "cursor-pointer" : ""}`}
-      style={{ background: isWinner ? "rgba(16,185,129,0.08)" : "transparent" }}
+      className={`flex items-center gap-2.5 px-3 py-3 sm:py-3.5 transition-all group ${isAdmin ? "cursor-pointer" : ""} ${isStar ? "star-team-row" : ""}`}
+      style={{ background: !isStar ? (isWinner ? "rgba(16,185,129,0.08)" : "transparent") : undefined }}
       onClick={isAdmin ? onClick : undefined}
       title={isAdmin ? "Click chọn đội thắng" : undefined}
     >
-      <div className="w-1 self-stretch rounded-full shrink-0" style={{ background: accent }} />
-      <TeamAvatars male={team.pair.male.image} female={team.pair.female.image} size="md" />
-      <span className="text-xs sm:text-sm font-bold flex-1" style={{ color: isWinner ? "var(--text-primary)" : "var(--text-secondary)" }}>
+      <div className="w-1 self-stretch rounded-full shrink-0" style={{ background: isStar ? "linear-gradient(180deg, #d4a843, #f97316, #ec4899)" : accent }} />
+      <div className={isStar ? "star-team-badge" : ""}>
+        <TeamAvatars male={team.pair.male.image} female={team.pair.female.image} size="md" />
+      </div>
+      <span className={`text-xs sm:text-sm font-bold flex-1 ${isStar ? "star-team-name" : ""}`} style={!isStar ? { color: isWinner ? "var(--text-primary)" : "var(--text-secondary)" } : undefined}>
         {team.name}
       </span>
       <div className="flex items-center gap-1.5">
