@@ -380,8 +380,8 @@ function BracketContent() {
     });
   };
 
-  // Empty state
-  if (pairs.length === 0) {
+  // Empty state — show full page with a CTA to spin
+  if (dataLoaded && pairs.length === 0) {
     return (
       <>
         <Navbar />
@@ -389,11 +389,15 @@ function BracketContent() {
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="text-center space-y-6">
             <div className="text-6xl opacity-50">🏆</div>
             <p className="text-lg" style={{ color: "var(--text-muted)" }}>Chưa có cặp nào! Hãy quay số trước.</p>
-            <Link href="/">
-              <motion.span whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} className="inline-flex items-center gap-2 px-8 py-3 rounded-full bg-gradient-to-r from-emerald-400 to-blue-500 text-white font-bold shadow-lg shadow-emerald-500/25">
-                Đi Quay Số
-              </motion.span>
-            </Link>
+            {isAdmin ? (
+              <Link href="/spin">
+                <motion.span whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} className="inline-flex items-center gap-2 px-8 py-3 rounded-full bg-gradient-to-r from-emerald-400 to-blue-500 text-white font-bold shadow-lg shadow-emerald-500/25">
+                  🏓 Đi Quay Số
+                </motion.span>
+              </Link>
+            ) : (
+              <p className="text-sm" style={{ color: "var(--text-muted)" }}>Chờ admin quay số bắt cặp...</p>
+            )}
           </motion.div>
         </main>
       </>

@@ -6,8 +6,9 @@ import { motion } from "framer-motion";
 import { useTheme } from "@/lib/theme";
 
 const navItems = [
-  // { href: "/", label: "Quay Số", icon: "🏓" }, // hidden for production
+  { href: "/spin", label: "Quay Số", icon: "🏓" },
   { href: "/bracket", label: "Nhánh Đấu", icon: "🏆" },
+  { href: "/players", label: "VĐV", icon: "👥" },
 ];
 
 export default function Navbar() {

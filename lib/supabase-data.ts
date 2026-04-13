@@ -32,6 +32,107 @@ export async function fetchPlayers(): Promise<{ males: Player[]; females: Player
   return { males, females };
 }
 
+// ---- Player CRUD ----
+
+export async function addPlayer(player: {
+  name: string;
+  displayName: string;
+  gender: "male" | "female";
+  imageUrl: string;
+}): Promise<Player> {
+  const id = player.name
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/đ/g, "d")
+    .replace(/Đ/g, "D")
+    .replace(/\s+/g, "-")
+    .replace(/[^a-z0-9-]/g, "");
+
+  const prefix = player.gender === "male" ? "a" : "c";
+  const playerId = `${prefix}-${id}`;
+
+  // Get max sort_order
+  const { data: maxRow } = await supabase
+    .from("players")
+    .select("sort_order")
+    .eq("gender", player.gender)
+    .order("sort_order", { ascending: false })
+    .limit(1)
+    .single();
+
+  const sortOrder = (maxRow?.sort_order ?? 0) + 1;
+
+  const { data, error } = await supabase
+    .from("players")
+    .insert({
+      id: playerId,
+      name: player.name,
+      display_name: player.displayName,
+      gender: player.gender,
+      image_url: player.imageUrl,
+      sort_order: sortOrder,
+    })
+    .select()
+    .single();
+
+  if (error) {
+    console.error("Error adding player:", error);
+    throw error;
+  }
+
+  return {
+    id: data.id,
+    name: data.name,
+    displayName: data.display_name,
+    image: data.image_url,
+    gender: data.gender,
+  };
+}
+
+export async function updatePlayer(
+  id: string,
+  updates: { name?: string; displayName?: string; imageUrl?: string }
+): Promise<void> {
+  const updateData: Record<string, string> = {};
+  if (updates.name !== undefined) updateData.name = updates.name;
+  if (updates.displayName !== undefined) updateData.display_name = updates.displayName;
+  if (updates.imageUrl !== undefined) updateData.image_url = updates.imageUrl;
+
+  const { error } = await supabase.from("players").update(updateData).eq("id", id);
+  if (error) {
+    console.error("Error updating player:", error);
+    throw error;
+  }
+}
+
+export async function deletePlayer(id: string): Promise<void> {
+  const { error } = await supabase.from("players").delete().eq("id", id);
+  if (error) {
+    console.error("Error deleting player:", error);
+    throw error;
+  }
+}
+
+export async function uploadPlayerImage(file: File, playerId: string): Promise<string> {
+  const ext = file.name.split(".").pop() || "jpg";
+  const filePath = `players/${playerId}.${ext}`;
+
+  // Upload to Supabase Storage
+  const { error: uploadError } = await supabase.storage
+    .from("player-images")
+    .upload(filePath, file, { upsert: true });
+
+  if (uploadError) {
+    console.error("Error uploading image:", uploadError);
+    throw uploadError;
+  }
+
+  // Get public URL
+  const { data } = supabase.storage.from("player-images").getPublicUrl(filePath);
+  return data.publicUrl;
+}
+
 // ---- Tournament Data (Pairs) ----
 
 export async function fetchPairs(): Promise<Pair[]> {
