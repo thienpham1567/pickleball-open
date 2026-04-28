@@ -469,8 +469,9 @@ function RankingCard({
 export default function RankingPage() {
   const [viewingPlayer, setViewingPlayer] = useState<Player | null>(null);
 
-  const champions = players.filter((p) => p.rank === 1);
-  const others = players.filter((p) => p.rank > 1);
+  const sortedPlayers = [...players].sort((a, b) => a.rank - b.rank);
+  const champions = sortedPlayers.filter((p) => p.rank === 1);
+  const others = sortedPlayers.filter((p) => p.rank > 1);
 
   const handleViewImage = useCallback((p: Player) => {
     setViewingPlayer(p);
