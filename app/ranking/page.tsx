@@ -22,10 +22,10 @@ const players: Player[] = [
   {
     rank: 1,
     name: "Anh Dũng",
-    image: "/hinhmn/a-dung.png",
+    image: "/hinhmn/a-dung-2.jpg",
     gender: "male",
     quote: "Ông hoàng sân BKF 👑",
-    imagePos: "center top",
+    imagePos: "center 20%",
   },
   {
     rank: 1,
@@ -87,9 +87,9 @@ const MEDAL_CONFIG: Record<
   1: {
     emoji: "🥇",
     color: "#FFD700",
-    glow: "0 0 20px rgba(255,215,0,0.5)",
+    glow: "0 0 24px rgba(255,215,0,0.5)",
     bg: "linear-gradient(135deg, #FFD700, #FFA000)",
-    label: "HẠNG NHẤT",
+    label: "VÔ ĐỊCH",
   },
   2: {
     emoji: "🥈",
@@ -233,7 +233,100 @@ function Lightbox({
 }
 
 /* ──────────────────────────────────────────────
-   LEADERBOARD ROW
+   HERO CARD — Large portrait for Top 1 & 2
+   ────────────────────────────────────────────── */
+function HeroCard({
+  player,
+  index,
+  onView,
+}: {
+  player: Player;
+  index: number;
+  onView: (p: Player) => void;
+}) {
+  const style = getRankStyle(player.rank);
+  const isChamp = player.rank === 1;
+
+  return (
+    <motion.div
+      className={`rk-hero ${isChamp ? "rk-hero--champ" : "rk-hero--runner"}`}
+      initial={{ opacity: 0, y: 40, scale: 0.92 }}
+      animate={{ opacity: 1, y: 0, scale: 1 }}
+      transition={{
+        duration: 0.7,
+        delay: 0.15 + index * 0.12,
+        type: "spring",
+        stiffness: 90,
+      }}
+    >
+      {/* Rank badge */}
+      <div className="rk-hero-badge" style={{ background: style.bg }}>
+        <span className="rk-hero-badge-emoji">{style.emoji}</span>
+        <span className="rk-hero-badge-label">{style.label}</span>
+      </div>
+
+      {/* Crown for champ */}
+      {isChamp && (
+        <motion.div
+          className="rk-hero-crown"
+          animate={{ y: [0, -5, 0], rotate: [-4, 4, -4] }}
+          transition={{ duration: 2.5, repeat: Infinity, ease: "easeInOut" }}
+        >
+          👑
+        </motion.div>
+      )}
+
+      {/* Image — clickable */}
+      <button
+        className="rk-hero-img-btn"
+        onClick={() => onView(player)}
+        aria-label={`Xem ảnh ${player.name}`}
+      >
+        <div className="rk-hero-img-wrap">
+          <Image
+            src={player.image}
+            alt={player.name}
+            fill
+            sizes="(max-width:480px) 85vw, (max-width:768px) 45vw, 320px"
+            className="rk-hero-img"
+            style={{ objectPosition: player.imagePos || "center center" }}
+            priority={player.rank === 1}
+          />
+          {/* Gradient overlay at bottom */}
+          <div className="rk-hero-overlay" />
+        </div>
+
+        {/* Info overlay */}
+        <div className="rk-hero-info">
+          <span
+            className="rk-hero-name"
+            style={{
+              background: style.bg,
+              WebkitBackgroundClip: "text",
+              WebkitTextFillColor: "transparent",
+              backgroundClip: "text",
+            }}
+          >
+            {player.name}
+          </span>
+          <span className="rk-hero-quote">{player.quote}</span>
+        </div>
+      </button>
+
+      {/* Glowing border */}
+      <div
+        className="rk-hero-glow"
+        style={{
+          boxShadow: style.glow,
+          borderColor: style.color,
+        }}
+      />
+    </motion.div>
+  );
+}
+
+/* ──────────────────────────────────────────────
+   LEADERBOARD ROW — Rank 3+
    ────────────────────────────────────────────── */
 function LeaderboardRow({
   player,
@@ -255,7 +348,7 @@ function LeaderboardRow({
       animate={{ opacity: 1, x: 0 }}
       transition={{
         duration: 0.5,
-        delay: 0.15 + index * 0.08,
+        delay: 0.6 + index * 0.08,
         type: "spring",
         stiffness: 120,
       }}
@@ -355,14 +448,9 @@ export default function RankingPage() {
   const [viewingPlayer, setViewingPlayer] = useState<Player | null>(null);
 
   const sorted = [...players].sort((a, b) => a.rank - b.rank);
-  const top3 = sorted.filter((p) => p.rank <= 3);
-  const podiumOrder = (() => {
-    // Podium: center = rank1, sides = rank2/3 — but handle ties
-    const r1 = sorted.filter((p) => p.rank === 1);
-    const r2 = sorted.filter((p) => p.rank === 2);
-    const r3 = sorted.filter((p) => p.rank === 3);
-    return { r1, r2, r3 };
-  })();
+  const rank1 = sorted.filter((p) => p.rank === 1);
+  const rank2 = sorted.filter((p) => p.rank === 2);
+  const rest = sorted.filter((p) => p.rank > 2);
 
   const handleView = useCallback((p: Player) => setViewingPlayer(p), []);
   const handleClose = useCallback(() => setViewingPlayer(null), []);
@@ -395,63 +483,53 @@ export default function RankingPage() {
         </p>
       </motion.header>
 
-      {/* ── PODIUM ── */}
-      <section className="rk-podium">
-        {/* Rank 2 — left */}
-        <div className="rk-podium-side rk-podium-left">
-          {podiumOrder.r2.map((p, i) => (
-            <PodiumAvatar
-              key={p.name}
-              player={p}
-              delay={0.3 + i * 0.1}
-              onView={handleView}
-            />
+      {/* ── TOP 1 — CHAMPION SPOTLIGHT ── */}
+      <section className="rk-spotlight">
+        <motion.h2
+          className="rk-section-title"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.2 }}
+        >
+          🏆 Vô địch đồng hạng
+        </motion.h2>
+        <div className="rk-hero-grid rk-hero-grid--champ">
+          {rank1.map((p, i) => (
+            <HeroCard key={p.name} player={p} index={i} onView={handleView} />
           ))}
-          <div className="rk-podium-bar rk-podium-bar--2">
-            <span>2</span>
-          </div>
-        </div>
-
-        {/* Rank 1 — center (elevated) */}
-        <div className="rk-podium-center">
-          {podiumOrder.r1.map((p, i) => (
-            <PodiumAvatar
-              key={p.name}
-              player={p}
-              delay={0.1 + i * 0.1}
-              onView={handleView}
-              isChamp
-            />
-          ))}
-          <div className="rk-podium-bar rk-podium-bar--1">
-            <span>1</span>
-          </div>
-        </div>
-
-        {/* Rank 3 — right */}
-        <div className="rk-podium-side rk-podium-right">
-          {podiumOrder.r3.map((p, i) => (
-            <PodiumAvatar
-              key={p.name}
-              player={p}
-              delay={0.5 + i * 0.1}
-              onView={handleView}
-            />
-          ))}
-          <div className="rk-podium-bar rk-podium-bar--3">
-            <span>3</span>
-          </div>
         </div>
       </section>
 
-      {/* ── FULL LEADERBOARD ── */}
+      {/* ── TOP 2 — RUNNERS UP ── */}
+      <section className="rk-spotlight">
+        <motion.h2
+          className="rk-section-title"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.4 }}
+        >
+          🥈 Á quân
+        </motion.h2>
+        <div className="rk-hero-grid rk-hero-grid--runner">
+          {rank2.map((p, i) => (
+            <HeroCard
+              key={p.name}
+              player={p}
+              index={i + rank1.length}
+              onView={handleView}
+            />
+          ))}
+        </div>
+      </section>
+
+      {/* ── REST LEADERBOARD ── */}
       <section className="rk-board">
         <div className="rk-board-header">
-          <span className="rk-board-title">Bảng xếp hạng đầy đủ</span>
+          <span className="rk-board-title">📊 Bảng xếp hạng</span>
           <span className="rk-board-count">{sorted.length} người chơi</span>
         </div>
         <div className="rk-board-list">
-          {sorted.map((p, i) => (
+          {rest.map((p, i) => (
             <LeaderboardRow
               key={p.name}
               player={p}
@@ -472,74 +550,5 @@ export default function RankingPage() {
         <p>Sân Pickleball BKF • Cập nhật: Tháng 4/2025</p>
       </motion.footer>
     </main>
-  );
-}
-
-/* ──────────────────────────────────────────────
-   PODIUM AVATAR
-   ────────────────────────────────────────────── */
-function PodiumAvatar({
-  player,
-  delay,
-  onView,
-  isChamp = false,
-}: {
-  player: Player;
-  delay: number;
-  onView: (p: Player) => void;
-  isChamp?: boolean;
-}) {
-  const style = getRankStyle(player.rank);
-
-  return (
-    <motion.div
-      className={`rk-pod-player ${isChamp ? "rk-pod-player--champ" : ""}`}
-      initial={{ opacity: 0, y: 30, scale: 0.85 }}
-      animate={{ opacity: 1, y: 0, scale: 1 }}
-      transition={{ duration: 0.6, delay, type: "spring", stiffness: 100 }}
-    >
-      {isChamp && (
-        <motion.div
-          className="rk-pod-crown"
-          animate={{ y: [0, -4, 0], rotate: [-3, 3, -3] }}
-          transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
-        >
-          👑
-        </motion.div>
-      )}
-
-      <button
-        className="rk-pod-avatar-btn"
-        onClick={() => onView(player)}
-        aria-label={`Xem ảnh ${player.name}`}
-      >
-        <div
-          className="rk-pod-avatar"
-          style={{ boxShadow: `0 0 0 3px ${style.color}, ${style.glow}` }}
-        >
-          <Image
-            src={player.image}
-            alt={player.name}
-            width={isChamp ? 120 : 96}
-            height={isChamp ? 120 : 96}
-            className="rk-pod-avatar-img"
-            style={{ objectPosition: player.imagePos }}
-          />
-        </div>
-      </button>
-
-      <span
-        className="rk-pod-name"
-        style={{
-          background: style.bg,
-          WebkitBackgroundClip: "text",
-          WebkitTextFillColor: "transparent",
-          backgroundClip: "text",
-        }}
-      >
-        {player.name}
-      </span>
-      <span className="rk-pod-quote">{player.quote}</span>
-    </motion.div>
   );
 }
