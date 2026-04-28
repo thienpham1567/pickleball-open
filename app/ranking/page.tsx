@@ -48,7 +48,7 @@ const players: Player[] = [
     name: "Chị Quỳnh",
     image: "/hinhmn/c-quynh.jpeg",
     gender: "female",
-    quote: "Nữ hoàng hồi teen",
+    quote: "Nữ hoàng cuốn hút",
     imagePos: "center 25%",
   },
   {
