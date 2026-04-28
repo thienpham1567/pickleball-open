@@ -29,14 +29,14 @@ const players: Player[] = [
     name: "Anh Thìn",
     image: "/hinhmn/a-thin.jpg",
     gender: "male",
-    quote: "Đối thủ xứng tầm 🔥",
+    quote: "Chưa được bóc tem",
   },
   {
     rank: 2,
     name: "Chị Thu Julie",
     image: "/hinhmn/c-thu.jpg",
     gender: "female",
-    quote: "Nữ hoàng sexy 💫",
+    quote: "Nữ hoàng sexy",
   },
   {
     rank: 2,
@@ -63,7 +63,7 @@ const players: Player[] = [
     rank: 5,
     name: "Thiên",
     image: "/hinhmn/c-me.jpg",
-    gender: "female",
+    gender: "male",
     quote: "Lữ yếu",
   },
 ];
@@ -112,7 +112,14 @@ const getRankStyle = (rank: number) =>
    ────────────────────────────────────────────── */
 function FloatingParticles() {
   const [particles, setParticles] = useState<
-    { id: number; x: number; y: number; size: number; delay: number; dur: number }[]
+    {
+      id: number;
+      x: number;
+      y: number;
+      size: number;
+      delay: number;
+      dur: number;
+    }[]
   >([]);
 
   useEffect(() => {
@@ -124,7 +131,7 @@ function FloatingParticles() {
         size: Math.random() * 3 + 1.5,
         delay: Math.random() * 6,
         dur: Math.random() * 12 + 10,
-      }))
+      })),
     );
   }, []);
 
@@ -183,7 +190,13 @@ function Lightbox({
             transition={{ type: "spring", stiffness: 220, damping: 22 }}
             onClick={(e) => e.stopPropagation()}
           >
-            <button className="rk-lightbox-close" onClick={onClose} aria-label="Close">✕</button>
+            <button
+              className="rk-lightbox-close"
+              onClick={onClose}
+              aria-label="Close"
+            >
+              ✕
+            </button>
             <div className="rk-lightbox-img-wrap">
               <Image
                 src={player.image}
@@ -195,7 +208,9 @@ function Lightbox({
               />
             </div>
             <div className="rk-lightbox-footer">
-              <span className="rk-lightbox-medal">{getRankStyle(player.rank).emoji || `#${player.rank}`}</span>
+              <span className="rk-lightbox-medal">
+                {getRankStyle(player.rank).emoji || `#${player.rank}`}
+              </span>
               <div>
                 <h3 className="rk-lightbox-name">{player.name}</h3>
                 <p className="rk-lightbox-quote">{player.quote}</p>
@@ -229,11 +244,19 @@ function LeaderboardRow({
       data-rank={player.rank}
       initial={{ opacity: 0, x: -30 }}
       animate={{ opacity: 1, x: 0 }}
-      transition={{ duration: 0.5, delay: 0.15 + index * 0.08, type: "spring", stiffness: 120 }}
+      transition={{
+        duration: 0.5,
+        delay: 0.15 + index * 0.08,
+        type: "spring",
+        stiffness: 120,
+      }}
       whileHover={{ x: 6 }}
     >
       {/* Rank indicator */}
-      <div className="rk-row-rank" style={isMedal ? { background: style.bg } : undefined}>
+      <div
+        className="rk-row-rank"
+        style={isMedal ? { background: style.bg } : undefined}
+      >
         {isMedal ? (
           <span className="rk-row-rank-emoji">{style.emoji}</span>
         ) : (
@@ -249,7 +272,11 @@ function LeaderboardRow({
       >
         <div
           className="rk-row-avatar"
-          style={isMedal ? { boxShadow: `0 0 0 3px ${style.color}, ${style.glow}` } : undefined}
+          style={
+            isMedal
+              ? { boxShadow: `0 0 0 3px ${style.color}, ${style.glow}` }
+              : undefined
+          }
         >
           <Image
             src={player.image}
@@ -280,7 +307,11 @@ function LeaderboardRow({
           >
             {player.name}
           </span>
-          {isMedal && <span className="rk-row-label" style={{ color: style.color }}>{style.label}</span>}
+          {isMedal && (
+            <span className="rk-row-label" style={{ color: style.color }}>
+              {style.label}
+            </span>
+          )}
         </div>
         <span className="rk-row-quote">{player.quote}</span>
       </div>
@@ -289,7 +320,10 @@ function LeaderboardRow({
       <div
         className="rk-row-gender"
         style={{
-          background: player.gender === "male" ? "var(--male-ring)" : "var(--female-ring)",
+          background:
+            player.gender === "male"
+              ? "var(--male-ring)"
+              : "var(--female-ring)",
           color: player.gender === "male" ? "var(--male)" : "var(--female)",
         }}
       >
@@ -297,7 +331,9 @@ function LeaderboardRow({
       </div>
 
       {/* Medal accent line */}
-      {isMedal && <div className="rk-row-accent" style={{ background: style.color }} />}
+      {isMedal && (
+        <div className="rk-row-accent" style={{ background: style.color }} />
+      )}
     </motion.div>
   );
 }
@@ -344,7 +380,9 @@ export default function RankingPage() {
         </div>
         <h1 className="rk-title text-shimmer">Bảng xếp hạng đánh hay</h1>
         <p className="rk-venue">SÂN PICKLEBALL BKF</p>
-        <p className="rk-season">Mùa giải 2025 • Top {players.length} người chơi</p>
+        <p className="rk-season">
+          Mùa giải 2025 • Top {players.length} người chơi
+        </p>
       </motion.header>
 
       {/* ── PODIUM ── */}
@@ -352,7 +390,12 @@ export default function RankingPage() {
         {/* Rank 2 — left */}
         <div className="rk-podium-side rk-podium-left">
           {podiumOrder.r2.map((p, i) => (
-            <PodiumAvatar key={p.name} player={p} delay={0.3 + i * 0.1} onView={handleView} />
+            <PodiumAvatar
+              key={p.name}
+              player={p}
+              delay={0.3 + i * 0.1}
+              onView={handleView}
+            />
           ))}
           <div className="rk-podium-bar rk-podium-bar--2">
             <span>2</span>
@@ -362,7 +405,13 @@ export default function RankingPage() {
         {/* Rank 1 — center (elevated) */}
         <div className="rk-podium-center">
           {podiumOrder.r1.map((p, i) => (
-            <PodiumAvatar key={p.name} player={p} delay={0.1 + i * 0.1} onView={handleView} isChamp />
+            <PodiumAvatar
+              key={p.name}
+              player={p}
+              delay={0.1 + i * 0.1}
+              onView={handleView}
+              isChamp
+            />
           ))}
           <div className="rk-podium-bar rk-podium-bar--1">
             <span>1</span>
@@ -372,7 +421,12 @@ export default function RankingPage() {
         {/* Rank 3 — right */}
         <div className="rk-podium-side rk-podium-right">
           {podiumOrder.r3.map((p, i) => (
-            <PodiumAvatar key={p.name} player={p} delay={0.5 + i * 0.1} onView={handleView} />
+            <PodiumAvatar
+              key={p.name}
+              player={p}
+              delay={0.5 + i * 0.1}
+              onView={handleView}
+            />
           ))}
           <div className="rk-podium-bar rk-podium-bar--3">
             <span>3</span>
@@ -388,7 +442,12 @@ export default function RankingPage() {
         </div>
         <div className="rk-board-list">
           {sorted.map((p, i) => (
-            <LeaderboardRow key={p.name} player={p} index={i} onView={handleView} />
+            <LeaderboardRow
+              key={p.name}
+              player={p}
+              index={i}
+              onView={handleView}
+            />
           ))}
         </div>
       </section>
