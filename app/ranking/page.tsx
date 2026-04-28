@@ -14,6 +14,8 @@ interface Player {
   image: string;
   gender: "male" | "female";
   quote: string;
+  /** Custom object-position for avatar crop */
+  imagePos?: string;
 }
 
 const players: Player[] = [
@@ -23,6 +25,7 @@ const players: Player[] = [
     image: "/hinhmn/a-dung.png",
     gender: "male",
     quote: "Ông hoàng sân BKF 👑",
+    imagePos: "center top",
   },
   {
     rank: 1,
@@ -30,6 +33,7 @@ const players: Player[] = [
     image: "/hinhmn/a-thin.jpg",
     gender: "male",
     quote: "Troai tân",
+    imagePos: "55% 30%",
   },
   {
     rank: 2,
@@ -37,6 +41,7 @@ const players: Player[] = [
     image: "/hinhmn/c-thu.jpg",
     gender: "female",
     quote: "Nữ hoàng sexy",
+    imagePos: "center 15%",
   },
   {
     rank: 2,
@@ -44,6 +49,7 @@ const players: Player[] = [
     image: "/hinhmn/c-quynh.jpeg",
     gender: "female",
     quote: "Nữ hoàng hồi teen",
+    imagePos: "center 25%",
   },
   {
     rank: 3,
@@ -51,6 +57,7 @@ const players: Player[] = [
     image: "/hinhmn/c-truc.jpeg",
     gender: "female",
     quote: "Cô giáo",
+    imagePos: "center 20%",
   },
   {
     rank: 4,
@@ -58,6 +65,7 @@ const players: Player[] = [
     image: "/hinhmn/a-phap.jpg",
     gender: "male",
     quote: "Cọc nhất nhóm",
+    imagePos: "center 25%",
   },
   {
     rank: 5,
@@ -65,6 +73,7 @@ const players: Player[] = [
     image: "/hinhmn/c-me.jpg",
     gender: "male",
     quote: "Đẹp trai cao to",
+    imagePos: "center 10%",
   },
 ];
 
@@ -284,6 +293,7 @@ function LeaderboardRow({
             width={72}
             height={72}
             className="rk-row-avatar-img"
+            style={{ objectPosition: player.imagePos }}
           />
         </div>
         <span className="rk-row-avatar-zoom">🔍</span>
@@ -513,6 +523,7 @@ function PodiumAvatar({
             width={isChamp ? 120 : 96}
             height={isChamp ? 120 : 96}
             className="rk-pod-avatar-img"
+            style={{ objectPosition: player.imagePos }}
           />
         </div>
       </button>
