@@ -29,7 +29,7 @@ const players: Player[] = [
     name: "Anh Thìn",
     image: "/hinhmn/a-thin.jpg",
     gender: "male",
-    quote: "Chưa được bóc tem",
+    quote: "Troai tân",
   },
   {
     rank: 2,
@@ -64,7 +64,7 @@ const players: Player[] = [
     name: "Thiên",
     image: "/hinhmn/c-me.jpg",
     gender: "male",
-    quote: "Lữ yếu",
+    quote: "Đẹp trai cao to",
   },
 ];
 
