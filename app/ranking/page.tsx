@@ -38,9 +38,9 @@ const players: Player[] = [
   {
     rank: 2,
     name: "Chị Thu Julie",
-    image: "/hinhmn/c-thu.jpg",
+    image: "/hinhmn/c-thu-2.jpg",
     gender: "female",
-    quote: "Nữ hoàng sexy",
+    quote: "Nữ hoàng damdang",
     imagePos: "center 15%",
   },
   {
